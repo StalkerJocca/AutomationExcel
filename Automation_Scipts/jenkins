@@ -9,7 +9,7 @@ pipeline {
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = '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'
+        GITHUB_CREDENTIALS_ID = '9c51577b-d0fb-4c78-9bab-4667dfe4c5b8'
     }
     stages {
         stage('Download Excel File') {
@@ -123,7 +123,7 @@ pipeline {
                                 fi
                             """
 
-                            // Push the changes to the remote repository - Teste
+                            // Push the changes to the remote repository
                             sh """
                                 git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@${GITHUB_REPO_URL.substring(8)} ${GITHUB_BRANCH}
                             """
