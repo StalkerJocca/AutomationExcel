@@ -1,0 +1,108 @@
+pipeline {
+    agent any
+    environment {
+        // Define the URL or local path to the Excel file
+        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/teste.xlsx'
+        EXCEL_FILE_PATH = 'excel-file.xlsx'
+        CSV_FILE_PATH = 'excel-file.csv'
+        HTML_FILE_PATH = 'excel-data.html'
+        UPLOAD_URL = 'https://example.com/upload' // Replace with your upload URL
+    }
+    stages {
+        stage('Download Excel File') {
+            steps {
+                script {
+                    try {
+                        // Download the Excel file from URL
+                        sh """
+                            curl -o ${EXCEL_FILE_PATH} ${EXCEL_FILE_URL}
+                        """
+                    } catch (e) {
+                        echo "Error downloading Excel file: ${e.message}"
+                        throw e
+                    }
+                }
+            }
+        }
+        stage('Convert Excel to CSV') {
+            steps {
+                script {
+                    try {
+                        // Convert the Excel file to CSV using csvkit
+                        sh """
+                            in2csv ${EXCEL_FILE_PATH} > ${CSV_FILE_PATH}
+                        """
+                    } catch (e) {
+                        echo "Error converting Excel to CSV: ${e.message}"
+                        throw e
+                    }
+                }
+            }
+        }
+        stage('Generate HTML from CSV') {
+            steps {
+                script {
+                    // Read the CSV file
+                    def csvContent = readFile file: "${CSV_FILE_PATH}"
+
+                    // Parse the CSV content and generate HTML
+                    def htmlContent = """
+                    <html>
+                    <head><title>Excel Data</title></head>
+                    <body>
+                    <table border="1">
+                    """
+
+                    csvContent.split('\n').each { line ->
+                        def cells = line.split(',')
+                        if (line.startsWith(',')) {
+                            htmlContent += "<thead><tr>"
+                            cells.each { cell ->
+                                htmlContent += "<th>${cell}</th>"
+                            }
+                            htmlContent += "</tr></thead><tbody>"
+                        } else {
+                            htmlContent += "<tr>"
+                            cells.each { cell ->
+                                htmlContent += "<td>${cell}</td>"
+                            }
+                            htmlContent += "</tr>"
+                        }
+                    }
+
+                    htmlContent += "</tbody></table></body></html>"
+
+                    // Write the HTML content to a file
+                    writeFile file: "${HTML_FILE_PATH}", text: htmlContent
+
+                    // Archive the HTML file in Jenkins
+                    archiveArtifacts artifacts: "${HTML_FILE_PATH}", allowEmptyArchive: true
+
+                    // Show the path of the created HTML file
+                    echo "HTML file created: ${env.WORKSPACE}/${HTML_FILE_PATH}"
+
+                    // Optionally, you can make the HTML file available for download
+                    echo "HTML file created: ${HTML_FILE_PATH}"
+                }
+            }
+        }
+        stage('Upload HTML to URL') {
+            steps {
+                script {
+                    try {
+                        // Upload the HTML file to the specified URL
+                        sh """
+                            curl -X POST \
+                              ${UPLOAD_URL} \
+                              -H 'Content-Type: application/html' \
+                              -T ${HTML_FILE_PATH}
+                        """
+                    } catch (e) {
+                        echo "Error uploading HTML file: ${e.message}"
+                        throw e
+                    }
+                }
+            }
+        }
+    }
+}
