@@ -9,7 +9,7 @@ pipeline {
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = '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'
+        GITHUB_CREDENTIALS_ID = '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'
     }
     stages {
         stage('Download Excel File') {
