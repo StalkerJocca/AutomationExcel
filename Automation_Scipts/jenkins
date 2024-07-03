@@ -123,7 +123,7 @@ pipeline {
                                 fi
                             """
 
-                            // Push the changes to the remote repository
+                            // Push the changes to the remote repository - Teste
                             sh """
                                 git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@${GITHUB_REPO_URL.substring(8)} ${GITHUB_BRANCH}
                             """
