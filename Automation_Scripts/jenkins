@@ -1,16 +1,14 @@
 pipeline {
     agent any
     environment {
-        // Define the URL or local path to the Excel file
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
         HTML_FILE_PATH = 'excel-data.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
-        GITHUB_USERNAME = 'StalkerJocca'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = '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'
+        GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
     }
     stages {
         stage('Download Excel File') {
@@ -49,72 +47,56 @@ pipeline {
                     // Read the CSV file
                     def csvContent = readFile file: "${CSV_FILE_PATH}"
 
-                    // Parse the CSV content and generate HTML
+                    // Parse the CSV content and generate HTML with Bootstrap
                     def htmlContent = """
-                    <html>
+                    <!DOCTYPE html>
+                    <html lang="en">
                     <head>
-                        <title>Planning</title>
-                        <style>
-                            body {
-                                font-family: Arial, sans-serif;
-                            }
-                            table {
-                                border-collapse: collapse;
-                                width: 100%;
-                            }
-                            th, td {
-                                border: 1px solid #ddd;
-                                padding: 8px;
-                                text-align: left;
-                            }
-                            th {
-                                background-color: #f0f0f0;
-                            }
-                            tr:nth-child(even) {
-                                background-color: #f2f2f2;
-                            }
-                           .header {
-                                background-color: #333;
-                                color: #fff;
-                                padding: 10px;
-                                text-align: center;
-                            }
-                           .footer {
-                                background-color: #333;
-                                color: #fff;
-                                padding: 10px;
-                                text-align: center;
-                                clear: both;
-                            }
-                        </style>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+                        <title>CSV Data</title>
                     </head>
                     <body>
-                        <div class="header">
-                            <h1>Planning</h1>
-                        </div>
-                        <table border="1">
+                        <div class="container mt-5">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h2 class="text-center">CSV Data Table</h2>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="thead-dark">
                     """
 
-                    csvContent.split('\n').each { line ->
-                        def cells = line.split(',')
-                        if (line.startsWith(',')) {
-                            htmlContent += "<thead><tr>"
-                            cells.each { cell ->
-                                htmlContent += "<th>${cell}</th>"
-                            }
-                            htmlContent += "</tr></thead><tbody>"
-                        } else {
-                            htmlContent += "<tr>"
-                            cells.each { cell ->
-                                htmlContent += "<td>${cell}</td>"
-                            }
-                            htmlContent += "</tr>"
-                        }
+                    // Add the CSV headers
+                    def lines = csvContent.split('\n')
+                    def headers = lines[0].split(',')
+                    htmlContent += '<tr>'
+                    headers.each { header ->
+                        htmlContent += "<th>${header}</th>"
                     }
+                    htmlContent += '</tr></thead><tbody>'
 
-                    htmlContent += "</tbody></table>"
-                    htmlContent += "<div class=\"footer\">Generated by Jenkins on ${new Date()}</div>"
-                    htmlContent += "</body></html>"
+                    // Add the CSV data rows
+                    lines.tail().each { line ->
+                        htmlContent += '<tr>'
+                        line.split(',').each { cell ->
+                            htmlContent += "<td>${cell}</td>"
+                        }
+                        htmlContent += '</tr>'
+                    }
+                    htmlContent += """
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+                    </body>
+                    </html>
+                    """
 
                     // Write the HTML content to a file
                     writeFile file: "${HTML_FILE_PATH}", text: htmlContent
@@ -133,32 +115,53 @@ pipeline {
         stage('Upload HTML to GitHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: GITHUB_CREDENTIALS_ID, usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                    // Create the folder if it doesn't exist
-                    sh "mkdir -p ${GITHUB_FOLDER}"
-
-                    // Copy the HTML file to the folder
-                    sh "cp ${HTML_FILE_PATH} ${GITHUB_FOLDER}/${HTML_FILE_PATH}"
-
-                    // Change into the cloned repository
-                   dir('AutomationExcel') {
-                        // Set the Git author configuration
+                    script {
+                        // Clean up existing directory if it exists
                         sh """
-                            git config user.name "StalkerJocca"
-                            git config user.email "joaocosta1695@gmail.com"
+                            if [ -d "AutomationExcel" ]; then
+                                rm -rf AutomationExcel
+                            fi
                         """
 
-                        // Add all changes, including new files
-                        sh "git add -A"
+                        // Clone the repository
+                        sh """
+                            git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git
+                        """
 
-                        // Commit the changes
-                        sh "git commit -m \"Automated upload of HTML file\""
+                        // Debug: List the contents of the cloned directory
+                        sh "ls -la AutomationExcel"
 
-                        // Push the changes to the remote repository
-                        git(
-                            url: "https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git",
-                            branch: GITHUB_BRANCH,
-                            credentialsId: GITHUB_CREDENTIALS_ID
-                        )
+                        // Create the folder if it doesn't exist
+                        sh "mkdir -p AutomationExcel/${GITHUB_FOLDER}"
+
+                        // Copy the HTML file to the folder
+                        sh "cp ${HTML_FILE_PATH} AutomationExcel/${GITHUB_FOLDER}/${HTML_FILE_PATH}"
+
+                        // Debug: List the contents of the folder where the file is copied
+                        sh "ls -la AutomationExcel/${GITHUB_FOLDER}"
+
+                        // Change into the cloned repository directory
+                        dir('AutomationExcel') {
+                            // Set the Git author configuration
+                            sh """
+                                git config user.name "${GITHUB_USERNAME}"
+                                git config user.email "joaocosta1695@gmail.com"
+                            """
+
+                            // Add all changes, including new files
+                            sh "git add -A"
+
+                            // Debug: Show git status to see the changes to be committed
+                            sh "git status"
+
+                            // Commit the changes
+                            sh "git commit -m 'Automated upload of HTML file'"
+
+                            // Push the changes to the remote repository using credentials
+                            sh """
+                                git push origin ${GITHUB_BRANCH}
+                            """
+                        }
                     }
                 }
             }
