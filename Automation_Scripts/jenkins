@@ -160,11 +160,9 @@ pipeline {
                             """
 
                             // Push the changes to the remote repository
-                            git(
-                                url: GITHUB_REPO_URL,
-                                branch: GITHUB_BRANCH,
-                                credentialsId: GITHUB_CREDENTIALS_ID
-                            )
+                            sh """
+                                git push https://${GITHUB_USERNAME}:${env.GITHUB_PASSWORD}@${GITHUB_REPO_URL} ${GITHUB_BRANCH}
+                            """
                         }
                     }
                 }
