@@ -5,11 +5,11 @@ pipeline {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
-        HTML_FILE_PATH = 'planning.html'
+        HTML_FILE_PATH = 'excel-data.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = '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'
+        GITHUB_CREDENTIALS_ID = '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'
     }
     stages {
         stage('Download Excel File') {
@@ -155,12 +155,8 @@ pipeline {
 
                             // Add and commit the changes
                             sh """
-                                if git diff --quiet; then
-                                    echo "No changes to commit"
-                                else
-                                    git add ${GITHUB_FOLDER}/${HTML_FILE_PATH}
-                                    git commit -m "Automated upload of HTML file"
-                                fi
+                                git add .
+                                git commit -m "Automated upload of HTML file"
                             """
 
                             // Push the changes to the remote repository
