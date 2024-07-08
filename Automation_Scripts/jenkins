@@ -89,6 +89,12 @@ pipeline {
                                 body { text-align: center; }
                                 .container { max-width: 800px; margin: auto; }
                                 .table-container { margin-top: 50px; }
+                                table {border-collapse: collapse; }
+                                th, td {
+                                    border: 1px solid #ddd;
+                                    padding: 8px;
+                                    text-align: left;
+                                }
                             </style>
                         </head>
                         <body>
@@ -111,7 +117,7 @@ pipeline {
                                 htmlContent += """
                                     <h2 class="mt-5">${currentSection.replace('_', ' ')}</h2>
                                     <div class="table-container">
-                                        <table class="table table-striped table-bordered">
+                                        <table class="table table-striped table-bordered mt-3 table-bordered">
                                             <thead>
                                                 <tr>
                                                     ${headers.collect { header -> "<th>${header}</th>" }.join('')}
