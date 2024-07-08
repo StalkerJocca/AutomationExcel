@@ -4,6 +4,7 @@ pipeline {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
+        CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
         HTML_FILE_PATH = 'excel-data.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
@@ -41,67 +42,70 @@ pipeline {
                 }
             }
         }
+        stage('Clean CSV File') {
+            steps {
+                script {
+                    def csvContent = readFile file: "${CSV_FILE_PATH}"
+                    def rows = csvContent.split('\n')
+                    def headers = rows[0].split(',')
+                    def dataRows = rows[1..-1]
+
+                    // Clean headers by assigning default names to unnamed columns
+                    def cleanedHeaders = headers.collect { header, index ->
+                        header ? header : "UnnamedColumn${index+1}"
+                    }
+
+                    def cleanedCSVContent = cleanedHeaders.join(',') + '\n' + dataRows.join('\n')
+                    writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent
+                }
+            }
+        }
         stage('Generate HTML from CSV') {
             steps {
                 script {
-                    // Read the CSV file
-                    def csvContent = readFile file: "${CSV_FILE_PATH}"
+                    // Read the cleaned CSV file
+                    def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
 
                     // Parse the CSV content and generate HTML with Bootstrap
+                    def rows = csvContent.split('\n')
+                    def headers = rows[0].split(',')
+                    def dataRows = rows[1..-1]
+
                     def htmlContent = """
                     <!DOCTYPE html>
                     <html lang="en">
                     <head>
                         <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>CSV Data</title>
+                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
                     </head>
                     <body>
-                        <div class="container mt-5">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <h2 class="text-center">CSV Data Table</h2>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover">
-                                            <thead class="thead-dark">
-                    """
-
-                    // Add the CSV headers
-                    def lines = csvContent.split('\n')
-                    def headers = lines[0].split(',')
-                    htmlContent += '<tr>'
-                    headers.each { header ->
-                        htmlContent += "<th>${header}</th>"
-                    }
-                    htmlContent += '</tr></thead><tbody>'
-
-                    // Add the CSV data rows
-                    lines.tail().each { line ->
-                        htmlContent += '<tr>'
-                        line.split(',').each { cell ->
-                            htmlContent += "<td>${cell}</td>"
-                        }
-                        htmlContent += '</tr>'
-                    }
-                    htmlContent += """
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="container">
+                            <h1 class="mt-5">CSV Data</h1>
+                            <table class="table table-striped table-bordered mt-3">
+                                <thead>
+                                    <tr>
+                                        ${headers.collect { header -> "<th>${header}</th>" }.join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${dataRows.collect { row -> 
+                                        "<tr>${row.split(',').collect { cell -> "<td>${cell}</td>" }.join('')}</tr>" 
+                                    }.join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+                        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+                        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
                     </body>
                     </html>
                     """
-
                     // Write the HTML content to a file
                     writeFile file: "${HTML_FILE_PATH}", text: htmlContent
-
-                    // Archive the HTML file in Jenkins
+                    
+                     // Archive the HTML file in Jenkins
                     archiveArtifacts artifacts: "${HTML_FILE_PATH}", allowEmptyArchive: true
 
                     // Show the path of the created HTML file
@@ -114,54 +118,36 @@ pipeline {
         }
         stage('Upload HTML to GitHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: GITHUB_CREDENTIALS_ID, usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                     script {
-                        // Clean up existing directory if it exists
+                        def incrementedHTMLFilePath = sh(script: """
+                            cd AutomationExcel/${GITHUB_FOLDER}
+                            baseName=\$(basename "${HTML_FILE_PATH}" .html)
+                            extension=".html"
+                            index=1
+                            while [ -f "\${baseName}_\${index}\${extension}" ]; do
+                                index=\$((index + 1))
+                            done
+                            echo "\${baseName}_\${index}\${extension}"
+                        """, returnStdout: true).trim()
+
                         sh """
                             if [ -d "AutomationExcel" ]; then
-                                rm -rf AutomationExcel
+                                cd AutomationExcel
+                                git pull
+                            else
+                                git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git
+                                cd AutomationExcel
                             fi
+                            mkdir -p ${GITHUB_FOLDER}
+                            cp ../${HTML_FILE_PATH} ${GITHUB_FOLDER}/${incrementedHTMLFilePath}
+                            cd ${GITHUB_FOLDER}
+                            git add ${incrementedHTMLFilePath}
+                            git config user.name "${GITHUB_USERNAME}"
+                            git config user.email "joaocosta1695@gmail.com"
+                            git commit -m 'Automated upload of HTML file'
+                            git push origin ${GITHUB_BRANCH}
                         """
-
-                        // Clone the repository
-                        sh """
-                            git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git
-                        """
-
-                        // Debug: List the contents of the cloned directory
-                        sh "ls -la AutomationExcel"
-
-                        // Create the folder if it doesn't exist
-                        sh "mkdir -p AutomationExcel/${GITHUB_FOLDER}"
-
-                        // Copy the HTML file to the folder
-                        sh "cp ${HTML_FILE_PATH} AutomationExcel/${GITHUB_FOLDER}/${HTML_FILE_PATH}"
-
-                        // Debug: List the contents of the folder where the file is copied
-                        sh "ls -la AutomationExcel/${GITHUB_FOLDER}"
-
-                        // Change into the cloned repository directory
-                        dir('AutomationExcel') {
-                            // Set the Git author configuration
-                            sh """
-                                git config user.name "${GITHUB_USERNAME}"
-                                git config user.email "joaocosta1695@gmail.com"
-                            """
-
-                            // Add all changes, including new files
-                            sh "git add -A"
-
-                            // Debug: Show git status to see the changes to be committed
-                            sh "git status"
-
-                            // Commit the changes
-                            sh "git commit -m 'Automated upload of HTML file'"
-
-                            // Push the changes to the remote repository using credentials
-                            sh """
-                                git push origin ${GITHUB_BRANCH}
-                            """
-                        }
                     }
                 }
             }
