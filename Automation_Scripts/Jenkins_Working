@@ -46,17 +46,21 @@ pipeline {
             steps {
                 script {
                     def csvContent = readFile file: "${CSV_FILE_PATH}"
-                    def rows = csvContent.split('\n')
-                    def headers = rows[0].split(',')
-                    def dataRows = rows[1..-1]
+                    def rows = csvContent.split('\n').findAll { it.trim() }
+                    if (rows.size() > 0) {
+                        def headers = rows[0].split(',').collect { it.trim() }
+                        def dataRows = rows[1..-1]
 
-                    // Clean headers by assigning default names to unnamed columns
-                    def cleanedHeaders = headers.collect { header, index ->
-                        header ? header : "UnnamedColumn${index+1}"
+                        // Clean headers by assigning default names to unnamed columns
+                        def cleanedHeaders = headers.collect { header, index ->
+                            header ? header : "UnnamedColumn${index+1}"
+                        }
+
+                        def cleanedCSVContent = cleanedHeaders.join(',') + '\n' + dataRows.join('\n')
+                        writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent
+                    } else {
+                        error "CSV file is empty or malformed."
                     }
-
-                    def cleanedCSVContent = cleanedHeaders.join(',') + '\n' + dataRows.join('\n')
-                    writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent
                 }
             }
         }
@@ -65,45 +69,82 @@ pipeline {
                 script {
                     // Read the cleaned CSV file
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
+                    def rows = csvContent.split('\n').findAll { it.trim() }
+                    
+                    if (rows.size() > 0) {
+                        def headers = rows[0].split(',').collect { it.trim() }
+                        def dataRows = rows[1..-1]
 
-                    // Parse the CSV content and generate HTML with Bootstrap
-                    def rows = csvContent.split('\n')
-                    def headers = rows[0].split(',')
-                    def dataRows = rows[1..-1]
+                        def tableSections = ["Analyse_and_Testing", "Development_and_Scope", "Expected_Dates_of_Deployment", "Resume"]
+                        def currentSection = null
+                        def htmlContent = """
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>CSV Data</title>
+                            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+                        </head>
+                        <body>
+                            <div class="container">
+                        """
 
-                    def htmlContent = """
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>CSV Data</title>
-                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1 class="mt-5">CSV Data</h1>
-                            <table class="table table-striped table-bordered mt-3">
-                                <thead>
-                                    <tr>
-                                        ${headers.collect { header -> "<th>${header}</th>" }.join('')}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${dataRows.collect { row -> 
-                                        "<tr>${row.split(',').collect { cell -> "<td>${cell}</td>" }.join('')}</tr>" 
-                                    }.join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-                        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-                    </body>
-                    </html>
-                    """
+                        dataRows.each { row ->
+                            def cells = row.split(',').collect { it.trim() }
+                            if (tableSections.contains(cells[0])) {
+                                if (currentSection != null) {
+                                    htmlContent += """
+                                            </tbody>
+                                        </table>
+                                    """
+                                }
+                                currentSection = cells[0]
+                                htmlContent += """
+                                    <h2 class="text-center mt-5">${currentSection.replace('_', ' ')}</h2>
+                                    <table class="table table-striped table-bordered mt-3">
+                                        <thead>
+                                            <tr>
+                                                ${headers.collect { header -> "<th>${header}</th>" }.join('')}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                """
+                            } else {
+                                if (currentSection == null) {
+                                    htmlContent += """
+                                        <p class="text-center">${cells.join(' ')}</p>
+                                    """
+                                } else {
+                                    htmlContent += """
+                                        <tr>${cells.collect { cell -> "<td>${cell}</td>" }.join('')}</tr>
+                                    """
+                                }
+                            }
+                        }
+
+                        if (currentSection != null) {
+                            htmlContent += """
+                                    </tbody>
+                                </table>
+                            """
+                        }
+
+                        htmlContent += """
+                            </div>
+                            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+                            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+                            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+                        </body>
+                        </html>
+                        """
                     // Write the HTML content to a file
-                    writeFile file: "${HTML_FILE_PATH}", text: htmlContent
+                    // writeFile file: "${HTML_FILE_PATH}", text: htmlContent
+
+                        writeFile file: "${HTML_FILE_PATH}", text: htmlContent
+                    } else {
+                        error "Cleaned CSV file is empty or malformed."
+                    }
                     
                      // Archive the HTML file in Jenkins
                     archiveArtifacts artifacts: "${HTML_FILE_PATH}", allowEmptyArchive: true
