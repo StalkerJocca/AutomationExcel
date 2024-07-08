@@ -4,7 +4,7 @@ pipeline {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
-        HTML_FILE_PATH = 'planing.html'
+        HTML_FILE_PATH = 'excel-data.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
@@ -42,70 +42,60 @@ pipeline {
             }
         }
         stage('Generate HTML from CSV') {
-    steps {
-        script {
-            // Read the CSV file
-            def csvContent = readFile file: "${CSV_FILE_PATH}"
+            steps {
+                script {
+                    // Read the CSV file
+                    def csvContent = readFile file: "${CSV_FILE_PATH}"
 
-            // Parse the CSV content and generate HTML with Bootstrap
-            def htmlContent = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
-                <title>Planning</title>
-            </head>
-            <body>
-                <div class="container mt-5">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h2 class="text-center">CACEIS</h2>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="thead-dark">
-            """
+                    // Parse the CSV content and generate HTML with Bootstrap
+                    def htmlContent = """
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+                        <title>CSV Data</title>
+                    </head>
+                    <body>
+                        <div class="container mt-5">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h2 class="text-center">CSV Data Table</h2>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="thead-dark">
+                    """
 
-            // Add the CSV headers for Table 1
-            def lines = csvContent.split('\n')
-            def headers = lines[0].split(',')
-            htmlContent += '<tr>'
-            headers.each { header ->
-                htmlContent += "<th>${header}</th>"
-            }
-            htmlContent += '</tr></thead><tbody>'
+                    // Add the CSV headers
+                    def lines = csvContent.split('\n')
+                    def headers = lines[0].split(',')
+                    htmlContent += '<tr>'
+                    headers.each { header ->
+                        htmlContent += "<th>${header}</th>"
+                    }
+                    htmlContent += '</tr></thead><tbody>'
 
-            // Add the CSV data rows for Table 1
-            lines.tail().each { line ->
-                htmlContent += '<tr>'
-                line.split(',').each { cell ->
-                    htmlContent += "<td>${cell}</td>"
-                }
-                htmlContent += '</tr>'
-            }
-            htmlContent += """
-                                    </tbody>
-                                </table>
+                    // Add the CSV data rows
+                    lines.tail().each { line ->
+                        htmlContent += '<tr>'
+                        line.split(',').each { cell ->
+                            htmlContent += "<td>${cell}</td>"
+                        }
+                        htmlContent += '</tr>'
+                    }
+                    htmlContent += """
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                            <p>Note: This is a note section for Table 1.</p>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="thead-dark">
-            """
-
-            htmlContent += """
-                            </tbody>
-                            </table>
-                            </div>
-                            
-                            <hr>
-                            <p>Signature:</p>
-                            <p>Name: João Costa</p>
-                            <p>Contacts:</p>
-                            <ul>
-                                <li>Email: [joaocosta1695@gmail.com](mailto:joaocosta1695@gmail.com)</li>
-                                <li>Phone: +351
+                        </div>
+                        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+                    </body>
+                    </html>
                     """
 
                     // Write the HTML content to a file
