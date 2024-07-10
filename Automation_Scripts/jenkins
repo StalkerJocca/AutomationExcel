@@ -67,143 +67,139 @@ pipeline {
         stage('Generate HTML from CSV') {
             steps {
                 script {
-                    // Read the cleaned CSV file
-                    def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
-                    def rows = csvContent.split('\n').findAll { it.trim() }
-                    
-                    if (rows.size() > 0) {
-                        def headers = rows[0].split(',').collect { it.trim() }
-                        def dataRows = rows[1..-1]
+            // Read the cleaned CSV file
+            def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
+            def rows = csvContent.split('\n').findAll { it.trim() }
+            
+            if (rows.size() > 0) {
+                def headers = rows[0].split(',').collect { it.trim() }
+                def dataRows = rows[1..-1]
 
-                        def tableSections = ["Analyse_and_Testing", "Development_and_Scope", "Expected_Dates_of_Deployment", "Resume"]
-                        def currentSection = null
-                        def htmlContent = """
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>PLANNING | SCOPE</title>
-                            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-                            <style>
-                                body {
-                                    font-family: Arial, sans-serif;
-                                    font-size: 14px;
-                                }
-                            .container {
-                                    max-width: 800px;
-                                    margin: auto;
-                                    padding: 20px;
-                                }
-                            .table-container {
-                                    margin-top: 50px;
-                                }
-                                table {
-                                    border-collapse: collapse;
-                                    width: 100%;
-                                }
-                                th, td {
-                                    border: 1px solid #ddd;
-                                    padding: 8px;
-                                    text-align: left;
-                                }
-                                th {
-                                    background-color: #f0f0f0;
-                                }
-                            .section-header {
-                                    font-size: 18px;
-                                    font-weight: bold;
-                                    margin-bottom: 10px;
-                                }
-
-                                /* Add responsive header and footer styles */
-                            .header {
-                                    background-color: #333;
-                                    color: #fff;
-                                    padding: 10px;
-                                    text-align: center;
-                                    width: 100%;
-                                    position: relative;
-                                }
-                            .header img {
-                                    width: 70%;
-                                    height: 50px;
-                                    object-fit: cover;
-                                    object-position: center;
-                                }
-                            .footer {
-                                    background-color: #333;
-                                    color: #fff;
-                                    padding: 10px;
-                                    text-align: center;
-                                    clear: both;
-                                    width: 100%;
-                                }
-                                @media (max-width: 768px) {
-                                .header,.footer {
-                                        padding: 5px;
-                                    }
-                                }
-                            </style>
-                        </head>
-                        <body>
-<                            <div class="container">
-                                <header class="header">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
-                                   <h1>PLANNING | SCOPE</h1>                             
-                                </header>
-                        """
-
-                        dataRows.each { row ->
-                            def cells = row.split(',').collect { it.trim() }
-                            if (cells.every { it.isEmpty() }) {
-                                htmlContent += "<br><br>"
-                            } else if (tableSections.contains(cells[0])) {
-                                if (currentSection != null) {
-                                    htmlContent += """
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    """
-                                }
-                                currentSection = cells[0]
-                                htmlContent += """
-                                                    <h2 class='section-header'>${currentSection.replace('_', ' ').replaceAll('[_]+', ' ')}</h2>
-                                                    <div class="table-container">
-                                                        <table class="table table-striped table-bordered mt-3">
-                                                            <thead>
-                                                                <tr>
-                                                                    ${headers.collect { header -> "<th>${header}</th>" }.join('')}
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                """
-                            } else if (cells[0].matches(/^[A-Za-z\s]+$/)) { // Check if the first column is a paragraph header
-                                if (cells[0].equals(cells[0].toUpperCase())) { // Check if the paragraph header is all uppercase
-                                    htmlContent += "<h3>${cells.join(' ')}</h3>"
-                                } else {
-                                    htmlContent += "<p>${cells.join(' ')}</p>"
-                                }
-                            } else {
-                                if (currentSection != null) {
-                                    htmlContent += """
-                                                <tr>${cells.collect { cell -> "<td>${cell}</td>" }.join('')}</tr>
-                                            """
-                                } else {
-                                    htmlContent += "<p>${cells.join(' ')}</p>"
-                                }
-                            }
+                def tableSections = ["Analyse_and_Testing", "Development_and_Scope", "Expected_Dates_of_Deployment", "Resume"]
+                def currentSection = null
+                def htmlContent = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>PLANNING | SCOPE</title>
+                    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 14px;
+                        }
+                    .container {
+                            max-width: 800px;
+                            margin: auto;
+                            padding: 20px;
+                        }
+                    .table-container {
+                            margin-top: 50px;
+                        }
+                        table {
+                            border-collapse: collapse;
+                            width: 100%;
+                        }
+                        th, td {
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f0f0f0;
+                        }
+                    .section-header {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin-bottom: 10px;
                         }
 
+                        /* Add responsive header and footer styles */
+                    .header {
+                            background-color: #333;
+                            color: #fff;
+                            padding: 10px;
+                            text-align: center;
+                            width: 100%;
+                            position: relative;
+                        }
+                    .header img {
+                            width: 50%;
+                            height: 25px;
+                            object-fit: cover;
+                            object-position: center;
+                        }
+                    .footer {
+                            background-color: #333;
+                            color: #fff;
+                            padding: 10px;
+                            text-align: center;
+                            clear: both;
+                            width: 100%;
+                        }
+                        @media (max-width: 768px) {
+                        .header,.footer {
+                                padding: 5px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <header class="header">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
+                            <h1>PLANNING | SCOPE</h1>                             
+                        </header>
+                """
+
+                dataRows.each { row ->
+                    def cells = row.split(',').collect { it.trim() }
+                    if (cells.every { it.isEmpty() }) {
+                        htmlContent += "<br><br>"
+                    } else if (tableSections.contains(cells[0])) {
                         if (currentSection != null) {
                             htmlContent += """
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            """
+                        }
+                        currentSection = cells[0]
+                        htmlContent += """
+                                            <h2 class='section-header'>${currentSection.replace('_', ' ').replaceAll('[_]+', ' ')}</h2>
+                                            <div class="table-container">
+                                                <table class="table table-striped table-bordered mt-3">
+                                                    <thead>
+                                                        <tr>
+                                                            ${headers.collect { header -> "<th>${header}</th>" }.join('')}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                        """
+                    } else if (cells[0].startsWith('-')) { // If it starts with a "-", treat it as a paragraph
+                        htmlContent += "<p>${cells.join(' ')}</p>"
+                    } else {
+                        if (currentSection != null) {
+                            htmlContent += """
+                                                <tr>${cells.collect { cell -> "<td>${cell}</td>" }.join('')}</tr>
+                                            """
+                        } else {
+                            htmlContent += "<p>${cells.join(' ')}</p>"
+                        }
+                    }
+                }
+
+                if (currentSection != null) {
+                    htmlContent += """
                                                 </tbody>
                                             </table>
                                         </div>
                                         """
-                        }
+                }
 
-                        htmlContent += """
+                htmlContent += """
                         <footer class="footer">
                             <p>&copy; 2024 João Carlos Costa</p><br>
                             <p>Project Manager | Scrum Master - joao.costa@caceis.com</p>
