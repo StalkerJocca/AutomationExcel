@@ -194,8 +194,9 @@ pipeline {
                         }
 
                         htmlContent += """
-                            <footer class="footer">
-                            <p>&copy; 2023 AutomationExcel</p>
+                        <footer class="footer">
+                            <p>&copy; 2024 João Carlos Costa</p><br>
+                            <p>Project Manager | Scrum Master - joao.costa@caceis.com</p>
                         </footer>
                             </div>
                         </body>
