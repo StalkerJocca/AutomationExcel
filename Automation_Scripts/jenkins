@@ -90,12 +90,12 @@ pipeline {
                                     font-family: Arial, sans-serif;
                                     font-size: 14px;
                                 }
-                                .container {
+                            .container {
                                     max-width: 800px;
                                     margin: auto;
                                     padding: 20px;
                                 }
-                                .table-container {
+                            .table-container {
                                     margin-top: 50px;
                                 }
                                 table {
@@ -110,38 +110,48 @@ pipeline {
                                 th {
                                     background-color: #f0f0f0;
                                 }
-                                .section-header {
+                            .section-header {
                                     font-size: 18px;
                                     font-weight: bold;
                                     margin-bottom: 10px;
                                 }
 
                                 /* Add responsive header and footer styles */
-                                .header {
+                            .header {
                                     background-color: #333;
                                     color: #fff;
                                     padding: 10px;
                                     text-align: center;
+                                    width: 100%;
+                                    position: relative;
                                 }
-                                .footer {
+                            .header img {
+                                    width: 70%;
+                                    height: 50px;
+                                    object-fit: cover;
+                                    object-position: center;
+                                }
+                            .footer {
                                     background-color: #333;
                                     color: #fff;
                                     padding: 10px;
                                     text-align: center;
                                     clear: both;
+                                    width: 100%;
                                 }
                                 @media (max-width: 768px) {
-                                    .header, .footer {
+                                .header,.footer {
                                         padding: 5px;
                                     }
                                 }
                             </style>
                         </head>
                         <body>
-                            <div class="container">
-                            <header class="header">
-                            <h1>PLANNING | SCOPE</h1>
-                        </header>
+<                            <div class="container">
+                                <header class="header">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
+                                   <h1>PLANNING | SCOPE</h1>                             
+                                </header>
                         """
 
                         dataRows.each { row ->
