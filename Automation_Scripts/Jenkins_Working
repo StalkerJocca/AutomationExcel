@@ -58,107 +58,116 @@ pipeline {
         stage('Generate HTML from CSV') {
             steps {
                 script {
-                        def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "PROJECT", "DATES"]
-                        def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
-                        def lines = csvContent.split('\n')
-                        
-                        def htmlContent = """
-                        <!DOCTYPE html>
-                        <html>
+                    def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "PROJECT", "DATES"]
+                    def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
+                    def lines = csvContent.split('\n')
+                    
+                    def htmlContent = """
+                    <!DOCTYPE html>
+                    <html>
 
-                        <head>
-                            <title>PLANNING | SCOPE</title>
-                            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-                            <style>
-                                table { width: 100%; }
-                                th, td { padding: 8px; text-align: left; }
-                                th { background-color: #f2f2f2; }
-                                .section-header {
-                                        font-size: 18px;
-                                        font-weight: bold;
-                                        margin-bottom: 10px;
-                                    }
+                    <head>
+                        <title>PLANNING | SCOPE</title>
+                        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+                        <style>
+                            
+                            .container { max-width: 1000px; margin: auto; }
+                            table { width: 100%; margin-bottom: 20px; }
+                            th, td { padding: 8px; text-align: center; }
+                            th { background-color: #007bff; color: white; }
+                            td { background-color: #f2f2f2; }
+                            .section-header {
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    margin-bottom: 10px;
+                                }
 
-                                /* Add responsive header and footer styles */
-                                .header {
-                                        background-color: #333;
-                                        color: #fff;
-                                        padding: 0px;
-                                        text-align: center;
-                                        width: 100%;
-                                        position: relative;
+                            /* Add responsive header and footer styles */
+                            .header {
+                                    background-color: #333;
+                                    color: #fff;
+                                    padding: 0px;
+                                    text-align: center;
+                                    width: 100%;
+                                    position: relative;
+                                }
+                            .header img {
+                                    width: 70%;
+                                    height: 50px;
+                                    object-fit: cover;
+                                    object-position: center;
+                                }
+                            .footer {
+                                    background-color: #333;
+                                    color: #fff;
+                                    padding: 10px;
+                                    text-align: center;
+                                    clear: both;
+                                    width: 100%;
+                                }
+                                @media (max-width: 768px) {
+                                .header,.footer {
+                                        padding: 5px;
                                     }
-                                .header img {
-                                        width: 100%;
-                                        height: 50px;
-                                        object-fit: cover;
-                                        object-position: center;
-                                    }
-                                .footer {
-                                        background-color: #333;
-                                        color: #fff;
-                                        padding: 10px;
-                                        text-align: center;
-                                        clear: both;
-                                        width: 100%;
-                                    }
-                                    @media (max-width: 768px) {
-                                    .header,.footer {
-                                            padding: 5px;
-                                        }
-                                    }
-                            </style>
-                        </head>
+                                }
+                        </style>
+                    </head>
 
-                        <tbody>
-                            <div class="container">
-                                    <header class="header">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
-                                        <h1>PLANNING | SCOPE</h1>                             
-                                    </header>
-                        """
+                    <tbody>
+                        <div class="container">
+                                <header class="header">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
+                                    <h1>PLANNING | SCOPE</h1>                             
+                                </header>
+                    """
 
-                        boolean inTable = false
-                        boolean skipNextLine = false
+                    boolean inTable = false
                         lines.eachWithIndex { line, index ->
-                            if (line.trim().isEmpty()) {
+                            if (line.trim().isEmpty() || line.contains("TABLE")) {
                                 if (inTable) {
                                     // Close the current table
                                     htmlContent += "</tbody></table>"
                                     inTable = false
-                                    skipNextLine = false
                                 }
-                                return // Skip empty lines
-                            }
-                            
-                            def columns = line.split(',')
-                            if (columns.size() == 0) {
-                                return // Skip lines that do not have any columns
-                            }
+                            } else {
+                                def columns = line.split(',')
+                                if (columns.size() == 0) {
+                                    return // Skip lines that do not have any columns
+                                }
 
-                            def firstColumn = columns[0].trim()
+                                def firstColumn = columns[0].trim()
 
-                            if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
-                                if (!inTable) {
+                                if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
+                                    if (inTable) {
+                                        // Close the current table before starting a new one
+                                        htmlContent += "</tbody></table>"
+                                    }
                                     inTable = true
-                                    skipNextLine = true
                                     // Start a new table
-                                    htmlContent += "<table class='table table-striped'><thead><tr>"
+                                    htmlContent += "<table class='table table-striped table-bordered'><thead><tr>"
                                     // Use the current line as header
                                     htmlContent += columns.collect { header -> "<th>${header}</th>" }.join('')
                                     htmlContent += "</tr></thead><tbody>"
-                                }
-                            } else if (inTable) {
-                                if (skipNextLine) {
-                                    // Skip the line immediately following the keyword line
-                                    skipNextLine = false
+                                } else if (inTable) {
+                                    if (firstColumn.startsWith("NOTES")) {
+                                        // Close the table when encountering "NOTES"
+                                        htmlContent += "</tbody></table>"
+                                        inTable = false
+                                        htmlContent += "<h2>${columns.join(', ')}</h2>"
+                                    } else {
+                                        // Add row to the table
+                                        htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                    }
                                 } else {
-                                    // Add row to the table
-                                    htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                    if (firstColumn.startsWith("NOTES")) {
+                                        htmlContent += "<h2>${columns.join(', ')}</h2>"
+                                    } else if (firstColumn.startsWith("-")) {
+                                        htmlContent += "<p>${columns.join(', ').replaceFirst('-', '')}</p>"
+                                    } else {
+                                        // Add paragraph
+                                        htmlContent += "<p>${line}</p>"
+                                    }
                                 }
-                            } else {
-                                // Add paragraph
-                                htmlContent += "<p>${line}</p>"
                             }
                         }
                         
@@ -185,7 +194,7 @@ pipeline {
                         // Show the path of the created HTML file
                         echo "HTML file created: ${env.WORKSPACE}/${HTML_FILE_PATH}"
 
-                        // Optionally, you can make the HTML file available for download
+                        // Optionally, you can make the HTML file available for downloading
                         echo "HTML file created: ${HTML_FILE_PATH}"
                 }
             }
