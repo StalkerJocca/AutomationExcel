@@ -70,9 +70,12 @@ pipeline {
                             <title>PLANNING | SCOPE</title>
                             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
                             <style>
-                                table { width: 100%; }
+                                
+                                .container { max-width: 1000px; margin: auto; }
+                                table { width: 100%; margin-bottom: 20px; }
                                 th, td { padding: 8px; text-align: left; }
-                                th { background-color: #f2f2f2; }
+                                th { background-color: #007bff; color: white; }
+                                td { background-color: #f2f2f2; }
                                 .section-header {
                                         font-size: 18px;
                                         font-weight: bold;
@@ -119,46 +122,39 @@ pipeline {
                         """
 
                         boolean inTable = false
-                        boolean skipNextLine = false
                         lines.eachWithIndex { line, index ->
                             if (line.trim().isEmpty()) {
                                 if (inTable) {
                                     // Close the current table
                                     htmlContent += "</tbody></table>"
                                     inTable = false
-                                    skipNextLine = false
                                 }
-                                return // Skip empty lines
-                            }
-                            
-                            def columns = line.split(',')
-                            if (columns.size() == 0) {
-                                return // Skip lines that do not have any columns
-                            }
+                            } else {
+                                def columns = line.split(',')
+                                if (columns.size() == 0) {
+                                    return // Skip lines that do not have any columns
+                                }
 
-                            def firstColumn = columns[0].trim()
+                                def firstColumn = columns[0].trim()
 
-                            if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
-                                if (!inTable) {
+                                if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
+                                    if (inTable) {
+                                        // Close the current table before starting a new one
+                                        htmlContent += "</tbody></table>"
+                                    }
                                     inTable = true
-                                    skipNextLine = true
                                     // Start a new table
-                                    htmlContent += "<table class='table table-striped'><thead><tr>"
+                                    htmlContent += "<table class='table table-striped table-bordered'><thead><tr>"
                                     // Use the current line as header
                                     htmlContent += columns.collect { header -> "<th>${header}</th>" }.join('')
                                     htmlContent += "</tr></thead><tbody>"
-                                }
-                            } else if (inTable) {
-                                if (skipNextLine) {
-                                    // Skip the line immediately following the keyword line
-                                    skipNextLine = false
-                                } else {
+                                } else if (inTable) {
                                     // Add row to the table
                                     htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                } else {
+                                    // Add paragraph
+                                    htmlContent += "<p>${line}</p>"
                                 }
-                            } else {
-                                // Add paragraph
-                                htmlContent += "<p>${line}</p>"
                             }
                         }
                         
@@ -185,7 +181,7 @@ pipeline {
                         // Show the path of the created HTML file
                         echo "HTML file created: ${env.WORKSPACE}/${HTML_FILE_PATH}"
 
-                        // Optionally, you can make the HTML file available for download
+                        // Optionally, you can make the HTML file available for downloading
                         echo "HTML file created: ${HTML_FILE_PATH}"
                 }
             }
