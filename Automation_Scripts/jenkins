@@ -59,7 +59,7 @@ pipeline {
             steps {
                 script {
                     def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY"]
-                    def TYPE_HEADINGS = ["PROJECT","RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
+                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
                     def lines = csvContent.split('\n')
                     
@@ -72,10 +72,16 @@ pipeline {
                         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
                         <style>
                             
-                            container { max-width: 1000px; margin: auto; }
+                            container { 
+                                max-width: 1000px;
+                                margin: auto;
+                            }
+
                             table {
                                 width: 100%;
                                 table-layout: fixed;
+                                background="https://i.pinimg.com/originals/43/21/88/432188f502b9a625f74a7d8cacbe5b8b.jpg";
+                                align="center";
                             }
                             th, td {
                                 padding: 8px;
@@ -108,7 +114,7 @@ pipeline {
                                     position: relative;
                                 }
                             .header img {
-                                    width: 70%;
+                                    width: 30%;
                                     height: 50px;
                                     object-fit: cover;
                                     object-position: center;
@@ -132,7 +138,7 @@ pipeline {
                     <tbody>
                         <div class="container">
                                 <header class="header">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
+                                    <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" alt="CACEIS">
                                     <h1>PLANNING | SCOPE</h1>                             
                                 </header>
                     """
@@ -143,6 +149,8 @@ pipeline {
                                 if (inTable) {
                                     // Close the current table
                                     htmlContent += "</tbody></table>"
+                                    htmlContent += "<hr style='border: 1px solid #ccc; margin: 10px 0;'>" // Add a horizontal line after the break
+                                    htmlContent += "<br>" // Add a break after closing each table
                                     inTable = false
                                 }
                             } else {
@@ -170,6 +178,8 @@ pipeline {
                                         htmlContent += "</tbody></table>"
                                         inTable = false
                                         htmlContent += "<h4 class='section-header'>${columns.join(', ')}</h4>"
+                                        htmlContent += "<hr style='border: 1px solid #ccc; margin: 10px 0;'>" // Add a horizontal line after the break
+                                        htmlContent += "<br>" // Add a break after each section header
                                     } else {
                                         // Add row to the table
                                         htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
@@ -177,6 +187,8 @@ pipeline {
                                 } else {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
                                         htmlContent += "<h4 class='section-header'>${columns.join(', ')}</h4>"
+                                        htmlContent += "<hr style='border: 1px solid #ccc; margin: 10px 0;'>" // Add a horizontal line after the break
+                                        htmlContent += "<br>" // Add a break after each section header
                                     } else if (firstColumn.startsWith("*-")) {
                                         if (inTable) {
                                             // Close the current table
