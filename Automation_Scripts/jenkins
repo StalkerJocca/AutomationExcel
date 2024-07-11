@@ -52,12 +52,16 @@
                             def dataRows = rows[1..-1]
 
                             // Clean headers by assigning default names to unnamed columns
-                            def cleanedHeaders = headers.collect { it ? it : 
-                            "UnnamedColumn${headers.indexOf(it)+1}" 
+                            def cleanedHeaders = headers.collect { it ? it : "UnnamedColumn${headers.indexOf(it)+1}" }.join(', ')
+
+                            // Fix: Use a StringBuilder to efficiently build the cleaned CSV content
+                            def cleanedCSVContent = new StringBuilder()
+                            cleanedCSVContent.append(cleanedHeaders).append('\n')
+                            dataRows.each { row ->
+                                cleanedCSVContent.append(row.split(',').collect { it.trim() }.join(',')).append('\n')
                             }
 
-                            def cleanedCSVContent = cleanedHeaders.join(',') + '\n' + dataRows.join('\n')
-                            writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent
+                            writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent.toString()
                         } else {
                             error "CSV file is empty or malformed."
                         }
@@ -88,12 +92,12 @@
                                         font-family: Arial, sans-serif;
                                         font-size: 14px;
                                     }
-                                    .container {
+                                .container {
                                         max-width: 800px;
                                         margin: auto;
                                         padding: 20px;
                                     }
-                                    .table-container {
+                                .table-container {
                                         margin-top: 50px;
                                     }
                                     table {
@@ -108,14 +112,14 @@
                                     th {
                                         background-color: #f0f0f0;
                                     }
-                                    .section-header {
+                                .section-header {
                                         font-size: 18px;
                                         font-weight: bold;
                                         margin-bottom: 10px;
                                     }
 
                                     /* Add responsive header and footer styles */
-                                    .header {
+                                .header {
                                         background-color: #333;
                                         color: #fff;
                                         padding: 0px;
@@ -123,13 +127,13 @@
                                         width: 100%;
                                         position: relative;
                                     }
-                                    .header img {
+                                .header img {
                                         width: 100%;
                                         height: 50px;
                                         object-fit: cover;
                                         object-position: center;
                                     }
-                                    .footer {
+                                .footer {
                                         background-color: #333;
                                         color: #fff;
                                         padding: 10px;
@@ -138,7 +142,7 @@
                                         width: 100%;
                                     }
                                     @media (max-width: 768px) {
-                                        .header,.footer {
+                                    .header,.footer {
                                             padding: 5px;
                                         }
                                     }
@@ -153,34 +157,16 @@
                             """
 
                             def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY"]
+                            def typeKeywordsRegex = TYPE_KEYWORDS.join('|')
                             def tableRows = []
                             dataRows.each { row ->
                                 def cells = row.split(',').collect { it.trim() }
                                 if (cells.every { it.isEmpty() }) {
                                     if (tableRows) {
-                                        def tableHeaders = headers.collect { header -> "<th>${header}</th>" }
+                                        def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
                                         htmlContent += """
-                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(TYPE_KEYWORDS.join('|'), ' ').replaceAll("[$TYPE_KEYWORDS.join('|')]"," ")}</h2>
-                                            <div class="table-container">
-                                                <table class="table table-striped table-bordered mt-3">
-                                                    <thead>
-                                                        <tr>
-                                                            ${tableHeaders.join('')}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${tableRows.collect { tablerow -> "<tr>${tablerow.collect { cell -> "<td>${cell}</td>" }.join('')}</tr>" }.join('')}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        """
-                                        tableRows = []
-                                    }
-                                } else if (cells[0] != null && (TYPE_KEYWORDS.any { cells[0].startsWith(it) } || cells[0].startsWith(TYPE_KEYWORDS.join('|')))) {
-                                    if (tableRows) {
-                                        def tableHeaders = headers.collect { header -> "<th>${header}</th>" }
-                                        htmlContent += """
-                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(TYPE_KEYWORDS.join('|'), ' ').replaceAll("[$TYPE_KEYWORDS.join('|')]"," ")}</h2>
+                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(/(${typeKeywordsRegex})/, '')}</h2>
+                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(/${typeKeywordsRegex}/, '')}</h2>
                                             <div class="table-container">
                                                 <table class="table table-striped table-bordered mt-3">
                                                     <thead>
@@ -189,7 +175,32 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        ${tableRows.collect { cellrow -> "<tr>${cellrow.collect { cell-> "<td>${cell}</td>" }.join('')}</tr>" }.join('')}
+                                                    ${tableRows.collect { tableRow -> 
+                                                        "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
+                                                    }.join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        """
+                                        tableRows = []
+                                    }
+                                } else if (cells[0]!= null && TYPE_KEYWORDS.any { cells[0].indexOf(it)!= -1 }) {  
+                                    if (tableRows) {
+                                        def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
+                                        htmlContent += """
+                                            <h2 class='section-header'>${tableRows[0][0].replace('TYPE', '').replaceAll("[$typeKeywordsRegex.join('|')]"," ")}</h2>
+                                            <div class="table-container">
+                                                <table class="table table-striped table-bordered mt-3">
+                                                    <thead>
+                                                        <tr>
+                                                            ${tableHeaders}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${tableRows.collect { tableRow -> 
+                                                            "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
+                                                        }.join('')}    
+                                                        
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -202,9 +213,9 @@
                             }
 
                             if (tableRows) {
-                                def tableHeaders = headers.collect { header -> "<th>${header}</th>" }.join('')
+                                def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
                                 htmlContent += """
-                                    <h2 class='section-header'>${tableRows[0][0].replace('TYPE', '').replaceAll("[$TYPE_KEYWORDS.join('|')]"," ")}</h2>
+                                    <h2 class='section-header'>${tableRows[0][0].replace('TYPE', '').replaceAll("[$typeKeywordsRegex.join('|')]"," ")}</h2>
                                     <div class="table-container">
                                         <table class="table table-striped table-bordered mt-3">
                                             <thead>
@@ -212,9 +223,12 @@
                                                     ${tableHeaders}
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                ${tableRows.collect { row -> "<tr>${row.collect { cell -> "<td>${cell}</td>" }.join('')}</tr>" }.join('')}
-                                            </tbody>
+                                        <tbody>
+                                        ${tableRows.collect { tableRow -> 
+                                            "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
+                                        }.join('')}    
+                                        
+                                        </tbody>
                                         </table>
                                     </div>
                                 """
