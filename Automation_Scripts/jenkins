@@ -58,8 +58,8 @@ pipeline {
         stage('Generate HTML from CSV') {
             steps {
                 script {
-                    def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "PROJECT", "DATES"]
-                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
+                    def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY"]
+                    def TYPE_HEADINGS = ["PROJECT","RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
                     def lines = csvContent.split('\n')
                     
@@ -151,27 +151,28 @@ pipeline {
                                     htmlContent += "</tr></thead><tbody>"
                                 } else if (inTable) {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
-                                        // Close the table when encountering "NOTES"
+                                        // Close the table when encountering "TYPE_HEADINGS"
                                         htmlContent += "</tbody></table>"
                                         inTable = false
-                                        htmlContent += "<h4>${columns.join(', ')}</h4>"
+                                        htmlContent += "<h4 class='section-header'>${columns.join(', ')}</h4>"
                                     } else {
                                         // Add row to the table
                                         htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
                                     }
                                 } else {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
-                                        htmlContent += "<h4>${columns.join(', ')}</h4>"
+                                        htmlContent += "<h4 class='section-header'>${columns.join(', ')}</h4>"
                                     } else if (firstColumn.startsWith("*-")) {
                                         if (inTable) {
                                             // Close the current table
                                             htmlContent += "</tbody></table>"
                                             inTable = false
                                         }
-                                        htmlContent += "<p>&bull; ${columns.join(', ').replaceFirst('*', '')}</p>"
+                                       htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.join(', ').replaceFirst('\\*', '')}</p>"
                                     } else {
                                         // Add paragraph
-                                        htmlContent += "<p>${line}</p>"
+                                        def visibleColumns = columns[0..<(columns.size() - 3)]
+                                        htmlContent += "<p>${visibleColumns.join(', ')}</p>"
                                     }
                                 }
                             }
