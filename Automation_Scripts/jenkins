@@ -162,7 +162,7 @@ pipeline {
                                 } else {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
                                         htmlContent += "<h4>${columns.join(', ')}</h4>"
-                                    } else if (firstColumn.startsWith("*")) {
+                                    } else if (firstColumn.startsWith("*-")) {
                                         if (inTable) {
                                             // Close the current table
                                             htmlContent += "</tbody></table>"
