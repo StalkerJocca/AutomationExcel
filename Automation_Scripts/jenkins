@@ -1,124 +1,85 @@
-    pipeline {
-        agent any
-        environment {
-            EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
-            EXCEL_FILE_PATH = 'excel-file.xlsx'
-            CSV_FILE_PATH = 'excel-file.csv'
-            CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
-            HTML_FILE_PATH = 'excel-data.html'
-            GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
-            GITHUB_BRANCH = 'main'
-            GITHUB_FOLDER = 'Exported_HTML_Files'
-            GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
+pipeline {
+    agent any
+    environment {
+        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
+        EXCEL_FILE_PATH = 'excel-file.xlsx'
+        CSV_FILE_PATH = 'excel-file.csv'
+        CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
+        HTML_FILE_PATH = 'excel-data.html'
+        GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
+        GITHUB_BRANCH = 'main'
+        GITHUB_FOLDER = 'Exported_HTML_Files'
+        GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
+    }
+    stages {
+        stage('Download Excel File') {
+            steps {
+                script {
+                    try {
+                        // Download the Excel file from URL
+                        sh """
+                            curl -o ${EXCEL_FILE_PATH} ${EXCEL_FILE_URL}
+                        """
+                    } catch (e) {
+                        echo "Error downloading Excel file: ${e.message}"
+                        throw e
+                    }
+                }
+            }
         }
-        stages {
-            stage('Download Excel File') {
-                steps {
-                    script {
-                        try {
-                            // Download the Excel file from URL
-                            sh """
-                                curl -o ${EXCEL_FILE_PATH} ${EXCEL_FILE_URL}
-                            """
-                        } catch (e) {
-                            echo "Error downloading Excel file: ${e.message}"
-                            throw e
-                        }
+        stage('Convert Excel to CSV') {
+            steps {
+                script {
+                    try {
+                        // Convert the Excel file to CSV using csvkit
+                        sh """
+                            in2csv ${EXCEL_FILE_PATH} > ${CSV_FILE_PATH}
+                        """
+                    } catch (e) {
+                        echo "Error converting Excel to CSV: ${e.message}"
+                        throw e
                     }
                 }
             }
-            stage('Convert Excel to CSV') {
-                steps {
-                    script {
-                        try {
-                            // Convert the Excel file to CSV using csvkit
-                            sh """
-                                in2csv ${EXCEL_FILE_PATH} > ${CSV_FILE_PATH}
-                            """
-                        } catch (e) {
-                            echo "Error converting Excel to CSV: ${e.message}"
-                            throw e
-                        }
-                    }
+        }
+        stage('Clean CSV File') {
+            steps {
+                script {
+                    def csvContent = readFile file: "${CSV_FILE_PATH}"
+                    // Perform cleaning operations on csvContent
+                    def cleanedCsvContent = csvContent.split('\n').collect { line ->
+                        // Replace multiple spaces with a single space
+                        line.replaceAll(/\s+/, ' ').trim()
+                    }.join('\n')
+                    writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCsvContent
                 }
             }
-            stage('Clean CSV File') {
-                steps {
-                    script {
-                        def csvContent = readFile file: "${CSV_FILE_PATH}"
-                        def rows = csvContent.split('\n').findAll { it.trim() }
-                        if (rows.size() > 0) {
-                            def headers = rows[0].split(',').collect { it.trim() }
-                            def dataRows = rows[1..-1]
-
-                            // Clean headers by assigning default names to unnamed columns
-                            def cleanedHeaders = headers.collect { it ? it : "UnnamedColumn${headers.indexOf(it)+1}" }.join(', ')
-
-                            // Fix: Use a StringBuilder to efficiently build the cleaned CSV content
-                            def cleanedCSVContent = new StringBuilder()
-                            cleanedCSVContent.append(cleanedHeaders).append('\n')
-                            dataRows.each { row ->
-                                cleanedCSVContent.append(row.split(',').collect { it.trim() }.join(',')).append('\n')
-                            }
-
-                            writeFile file: "${CLEANED_CSV_FILE_PATH}", text: cleanedCSVContent.toString()
-                        } else {
-                            error "CSV file is empty or malformed."
-                        }
-                    }
-                }
-            }
-            stage('Generate HTML from CSV') {
-                steps {
-                    script {
-                        // Read the cleaned CSV file
+        }
+        stage('Generate HTML from CSV') {
+            steps {
+                script {
+                        def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "PROJECT", "DATES"]
                         def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
-                        def rows = csvContent.split('\n').findAll { it.trim() }
+                        def lines = csvContent.split('\n')
+                        
+                        def htmlContent = """
+                        <!DOCTYPE html>
+                        <html>
 
-                        if (rows.size() > 0) {
-                            def headers = rows[0].split(',').collect { it.trim() }
-                            def dataRows = rows[1..-1]
-
-                            def htmlContent = """
-                            <!DOCTYPE html>
-                            <html lang="en">
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>PLANNING | SCOPE</title>
-                                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-                                <style>
-                                    body {
-                                        font-family: Arial, sans-serif;
-                                        font-size: 14px;
-                                    }
-                                .container {
-                                        max-width: 800px;
-                                        margin: auto;
-                                        padding: 20px;
-                                    }
-                                .table-container {
-                                        margin-top: 50px;
-                                    }
-                                    table {
-                                        border-collapse: collapse;
-                                        width: 100%;
-                                    }
-                                    th, td {
-                                        border: 1px solid #ddd;
-                                        padding: 8px;
-                                        text-align: left;
-                                    }
-                                    th {
-                                        background-color: #f0f0f0;
-                                    }
+                        <head>
+                            <title>PLANNING | SCOPE</title>
+                            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+                            <style>
+                                table { width: 100%; }
+                                th, td { padding: 8px; text-align: left; }
+                                th { background-color: #f2f2f2; }
                                 .section-header {
                                         font-size: 18px;
                                         font-weight: bold;
                                         margin-bottom: 10px;
                                     }
 
-                                    /* Add responsive header and footer styles */
+                                /* Add responsive header and footer styles */
                                 .header {
                                         background-color: #333;
                                         color: #fff;
@@ -146,95 +107,67 @@
                                             padding: 5px;
                                         }
                                     }
-                                </style>
-                            </head>
-                            <body>
-                                <div class="container">
+                            </style>
+                        </head>
+
+                        <tbody>
+                            <div class="container">
                                     <header class="header">
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CACEIS_Bank_logo.svg/1280px-CACEIS_Bank_logo.svg.png" alt="CACEIS">
                                         <h1>PLANNING | SCOPE</h1>                             
                                     </header>
-                            """
+                        """
 
-                            def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY"]
-                            def typeKeywordsRegex = TYPE_KEYWORDS.join('|')
-                            def tableRows = []
-                            dataRows.each { row ->
-                                def cells = row.split(',').collect { it.trim() }
-                                if (cells.every { it.isEmpty() }) {
-                                    if (tableRows) {
-                                        def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
-                                        htmlContent += """
-                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(/(${typeKeywordsRegex})/, '')}</h2>
-                                            <h2 class='section-header'>${tableRows[0][0].replaceAll(/${typeKeywordsRegex}/, '')}</h2>
-                                            <div class="table-container">
-                                                <table class="table table-striped table-bordered mt-3">
-                                                    <thead>
-                                                        <tr>
-                                                            ${tableHeaders}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    ${tableRows.collect { tableRow -> 
-                                                        "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
-                                                    }.join('')}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        """
-                                        tableRows = []
-                                    }
-                                } else if (cells[0]!= null && TYPE_KEYWORDS.any { cells[0].indexOf(it)!= -1 }) {  
-                                    if (tableRows) {
-                                        def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
-                                        htmlContent += """
-                                            <h2 class='section-header'>${tableRows[0][0].replace('TYPE', '').replaceAll("[$typeKeywordsRegex.join('|')]"," ")}</h2>
-                                            <div class="table-container">
-                                                <table class="table table-striped table-bordered mt-3">
-                                                    <thead>
-                                                        <tr>
-                                                            ${tableHeaders}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${tableRows.collect { tableRow -> 
-                                                            "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
-                                                        }.join('')}    
-                                                        
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        """
-                                    }
-                                    tableRows = [cells]
-                                } else {
-                                    tableRows.add(cells)
+                        boolean inTable = false
+                        boolean skipNextLine = false
+                        lines.eachWithIndex { line, index ->
+                            if (line.trim().isEmpty()) {
+                                if (inTable) {
+                                    // Close the current table
+                                    htmlContent += "</tbody></table>"
+                                    inTable = false
+                                    skipNextLine = false
                                 }
+                                return // Skip empty lines
+                            }
+                            
+                            def columns = line.split(',')
+                            if (columns.size() == 0) {
+                                return // Skip lines that do not have any columns
                             }
 
-                            if (tableRows) {
-                                def tableHeaders = headers.collect { "<th>${it}</th>" }.join(' ')
-                                htmlContent += """
-                                    <h2 class='section-header'>${tableRows[0][0].replace('TYPE', '').replaceAll("[$typeKeywordsRegex.join('|')]"," ")}</h2>
-                                    <div class="table-container">
-                                        <table class="table table-striped table-bordered mt-3">
-                                            <thead>
-                                                <tr>
-                                                    ${tableHeaders}
-                                                </tr>
-                                            </thead>
-                                        <tbody>
-                                        ${tableRows.collect { tableRow -> 
-                                            "<tr>" + tableRow.collect { cell -> "<td>${cell}</td>" }.join('') + "</tr>"
-                                        }.join('')}    
-                                        
-                                        </tbody>
-                                        </table>
-                                    </div>
-                                """
-                            }
+                            def firstColumn = columns[0].trim()
 
-                            htmlContent += """
+                            if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
+                                if (!inTable) {
+                                    inTable = true
+                                    skipNextLine = true
+                                    // Start a new table
+                                    htmlContent += "<table class='table table-striped'><thead><tr>"
+                                    // Use the current line as header
+                                    htmlContent += columns.collect { header -> "<th>${header}</th>" }.join('')
+                                    htmlContent += "</tr></thead><tbody>"
+                                }
+                            } else if (inTable) {
+                                if (skipNextLine) {
+                                    // Skip the line immediately following the keyword line
+                                    skipNextLine = false
+                                } else {
+                                    // Add row to the table
+                                    htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                }
+                            } else {
+                                // Add paragraph
+                                htmlContent += "<p>${line}</p>"
+                            }
+                        }
+                        
+                        if (inTable) {
+                            // Close the table if still open
+                            htmlContent += "</tbody></table>"
+                        }
+
+                        htmlContent += """
                                 <footer class="footer">
                                     <p>&copy; 2024 João Carlos Costa</p><br>
                                     <p>Project Manager | Scrum Master - joao.costa@caceis.com</p>
@@ -244,10 +177,7 @@
                             </html>
                             """
 
-                            writeFile file: "${HTML_FILE_PATH}", text: htmlContent
-                        } else {
-                            error "Cleaned CSV file is empty or malformed."
-                        }
+                        writeFile file: "${HTML_FILE_PATH}", text: htmlContent
 
                         // Archive the HTML file in Jenkins
                         archiveArtifacts artifacts: "${HTML_FILE_PATH}", allowEmptyArchive: true
@@ -257,13 +187,13 @@
 
                         // Optionally, you can make the HTML file available for download
                         echo "HTML file created: ${HTML_FILE_PATH}"
-                    }
                 }
             }
-            stage('Upload HTML to GitHub') {
-                steps {
-                    withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                        script {
+        }
+        stage('Upload HTML to GitHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                    script {
                             def incrementedHTMLFilePath = sh(script: """
                                 cd AutomationExcel/${GITHUB_FOLDER}
                                 baseName=\$(basename "${HTML_FILE_PATH}" .html)
@@ -293,8 +223,8 @@
                                 git push origin ${GITHUB_BRANCH}
                             """
                         }
-                    }
                 }
             }
         }
     }
+}
