@@ -85,24 +85,34 @@ pipeline {
                             table {
                                 width: 100%;
                                 table-layout: fixed;
-                                background="https://i.pinimg.com/originals/43/21/88/432188f502b9a625f74a7d8cacbe5b8b.jpg";
                                 align="center";
+                                background-color: #f2f2f2; /* Add this line to set the background color to light gray */
+                                border-collapse: collapse; /* Add this line to collapse the table borders */
                             }
-                            th, td {
+                            th {
                                 padding: 8px;
                                 text-align: left;
                                 white-space: nowrap;
                                 overflow: hidden;
                                 text-overflow: ellipsis;
-                            }
-                            th {
-                                background-color: #007bff;
+                                background-color: #ff0000; /* Change the background color to red */
                                 color: white;
                                 font-weight: bold;
                             }
                             td {
-                                background-color: #f2f2f2;
+                                padding: 8px;
+                                text-align: left;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                border-bottom: 1px solid #ddd; /* Add this line to add a bottom border to each cell */
                             }
+
+                            tr:hover {
+                                background-color: #f5f5f5; /* Add this line to set the hover background color to light gray */
+                            }
+
+
                             .section-header {
                                     font-size: 18px;
                                     font-weight: bold;
@@ -155,7 +165,7 @@ pipeline {
                     """
 
                     boolean inTable = false
-                        lines.eachWithIndex { line, index ->
+                        lines.drop(1).eachWithIndex { line, index ->
                             if (line.trim().isEmpty() || line.contains("TABLE")) {
                                 if (inTable) {
                                     // Close the current table
@@ -180,7 +190,7 @@ pipeline {
                                     inTable = true
                                     htmlContent += "<br>" // Add a break after each section header
                                     // Start a new table
-                                    htmlContent += "<table class='table table-striped table-bordered'><thead><tr>"
+                                    htmlContent += "<table class='table table-hover table-dark'><thead><tr>"
                                     // Use the current line as header
                                     htmlContent += columns.collect { header -> "<th>${header}</th>" }.join('')
                                     htmlContent += "</tr></thead><tbody>"
@@ -213,10 +223,12 @@ pipeline {
                                     } else {
                                         if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
                                             // Add paragraph if the first column starts with capital letters
-                                            htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
+                                            // htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
+                                            htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
                                         } else {
                                             // Add paragraph with bullet point if the first column does not start with capital letters
-                                            htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.join(', ').replaceFirst('\\*', '')}</p>"
+                                            htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.findAll { it.trim() }.join(' ')}</p>"
+                                            //htmlContent += "<p><span style='color: #b30000;'>&bull;</span>${columns.join(' ')}</p>"
                                         }
                                     }
                                 }
