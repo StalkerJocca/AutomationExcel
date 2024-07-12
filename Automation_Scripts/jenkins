@@ -75,7 +75,6 @@ pipeline {
                             container { 
                                 max-width: 1000px;
                                 margin: auto;
-                                background-color: yellow; /* Add this line to set the background color to yellow */
                             }
 
                             .main-content {
@@ -120,47 +119,57 @@ pipeline {
                                 }
 
                             /* Add responsive header and footer styles */
-                            .header {
-                                background-color: #333;
-                                color: #fff;
-                                padding: 0px;
-                                text-align: center;
-                                width: 100%;
-                                position: fixed;
-                                top: 0;
-                                left: 0;
-                                z-index: 1000;
+                            header {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 70px; /* adjust the height to your needs */
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #333; /* optional */
+                            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* optional */
                             }
-
-                            .header img {
-                                width: 200px;
-                                height: 50px;
-                                object-fit: cover;
-                                object-position: center;
-                                margin: 10px;
+                            header img {
+                            width: 130px; /* adjust the width to your needs */
+                            height: 50px; /* adjust the height to your needs */
+                            margin-right: 10px;
+                            }
+                            header span {
+                            font-size: 30px;
+                            font-weight: bold;
+                            margin-left: 0.5em;
+                            color: #fff;
                             }
                             .footer {
-                                    background-color: #333;
-                                    color: #fff;
-                                    padding: 10px;
-                                    text-align: center;
-                                    clear: both;
-                                    width: 100%;
-                                }
-                                @media (max-width: 768px) {
+                            background-color: #333;
+                            color: #fff;
+                            padding: 10px;
+                            text-align: center;
+                            clear: both;
+                            width: 100%;
+                            }
+                            @media (max-width: 768px) {
                                 .header,.footer {
-                                        padding: 5px;
-                                    }
+                                    padding: 5px;
                                 }
+                            }
                         </style>
                     </head>
 
                     <tbody>
+                        
                         <header class="header">
-                            <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" style="display:block;font-size:12px;border:0;outline:none;text-decoration:none" title="BST CONCERTO" height="5" width="150" alt="CACEIS">                      
+                                <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
+                                <span>SPRINT PLANING</span>
                         </header>
                         <div class="main-content"/>
                             <div class="container">
+                                
+
+                            
+                            
                                 
                     """
 
@@ -205,7 +214,33 @@ pipeline {
                                         htmlContent += "<br>" // Add a break after each section header
                                     } else {
                                         // Add row to the table
-                                        htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                        //htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
+                                        def rowHtml = """<tr>"""
+                                            columns.each { column ->
+                                            if (column.trim().contains("DEFECT")) {
+                                                rowHtml += "<td style='background-color: #FF0000;'>${column}</td>" // Red background for DEFECT
+                                            } else if (column.trim().contains("STORY")) {
+                                                rowHtml += "<td style='background-color: #09A060;'>${column}</td>" // Green background for STORY
+                                            } else if (column.trim().contains("CHANGE REQUEST")) {
+                                                rowHtml += "<td style='background-color: #04BF70;'>${column}</td>" // Green background for CHANGE REQUEST
+                                            } else if (column.trim().contains("CANCELLED")) {
+                                                rowHtml += "<td style='background-color: #16492C;'>${column}</td>" // Green background for CANCELLED
+                                            } else if (column.trim().contains("CLOSED")) {
+                                                rowHtml += "<td style='background-color: #09A060;'>${column}</td>" // Green background for CLOSED
+                                            } else if (column.trim().contains("DEVELOPMENT")) {
+                                                rowHtml += "<td style='background-color: #1E4893;'>${column}</td>" // Green background for DEVELOPMENT
+                                            } else if (column.trim().contains("TO START DEVELOPMENT")) {
+                                                rowHtml += "<td style='background-color: #5A6578;'>${column}</td>" // Green background for TO START DEVELOPMENT
+                                            } else if (column.trim().contains("UAT")) {
+                                                rowHtml += "<td style='background-color: #321361;'>${column}</td>" // Green background for UAT
+                                            } else if (column.trim().contains("IT ADM")) {
+                                                rowHtml += "<td style='background-color: #2286E5;'>${column}</td>" // Green background for IT ADM
+                                            } else {
+                                                rowHtml += "<td>${column}</td>"
+                                            }
+                                        }
+                                        rowHtml += "</tr>"
+                                        htmlContent += rowHtml
                                     }
                                 } else {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
