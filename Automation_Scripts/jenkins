@@ -78,7 +78,7 @@ pipeline {
                             }
 
                             .main-content {
-                            margin-top: 80px;
+                            margin-top: 30px;
                             }
 
                             table {
@@ -120,10 +120,13 @@ pipeline {
 
                             /* Add responsive header and footer styles */
                             header {
-                            position: fixed;
                             top: 0;
                             left: 0;
+                            text-align: center;
                             width: 100%;
+                            max-width: 1125px;
+                            min-width: 200px;
+                            margin: auto;
                             height: 70px; /* adjust the height to your needs */
                             display: flex;
                             justify-content: center;
@@ -132,12 +135,12 @@ pipeline {
                             box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* optional */
                             }
                             header img {
-                            width: 130px; /* adjust the width to your needs */
+                            width: 140px; /* adjust the width to your needs */
                             height: 50px; /* adjust the height to your needs */
-                            margin-right: 10px;
+                            margin-right: 0.5em;
                             }
                             header span {
-                            font-size: 30px;
+                            font-size: 40px;
                             font-weight: bold;
                             margin-left: 0.5em;
                             color: #fff;
@@ -149,6 +152,7 @@ pipeline {
                             text-align: center;
                             clear: both;
                             width: 100%;
+                            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* optional */
                             }
                             @media (max-width: 768px) {
                                 .header,.footer {
@@ -159,18 +163,13 @@ pipeline {
                     </head>
 
                     <tbody>
+                    <header class="header">
+                            <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
+                            <span>SPRINT PLANING</span>
+                    </header> 
                         
-                        <header class="header">
-                                <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
-                                <span>SPRINT PLANING</span>
-                        </header>
-                        <div class="main-content"/>
+                        <div class="main-content">
                             <div class="container">
-                                
-
-                            
-                            
-                                
                     """
 
                     boolean inTable = false
@@ -281,6 +280,7 @@ pipeline {
                                     <p>&copy; 2024 Joao Carlos Costa</p><br>
                                     <p>Project Manager | Scrum Master - joao.costa@caceis.com</p>
                                 </footer>
+                                </div>
                                 </div>
                             </body>
                             </html>
