@@ -5,7 +5,7 @@ pipeline {
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
         CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
-        HTML_FILE_PATH = 'excel-data.html'
+        HTML_FILE_PATH = 'Sprint_Planning.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
