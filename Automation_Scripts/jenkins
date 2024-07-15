@@ -10,6 +10,7 @@ pipeline {
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
         GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
+        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // Change this to the desired email recipient
     }
     stages {
         stage('Download Excel File') {
@@ -331,9 +332,72 @@ pipeline {
                                 git commit -m 'Automated upload of HTML file'
                                 git push origin ${GITHUB_BRANCH}
                             """
+                    }
+                }
+            }   
+        }
+        stage('Check and Zip HTML file') {
+            steps {
+                script {
+                    def htmlFilePath = "${WORKSPACE}/${HTML_FILE_PATH}"
+                    def zipFilePath = "${WORKSPACE}/${HTML_FILE_PATH}.zip"
+
+                    if (fileExists(htmlFilePath)) {
+                        echo "HTML file exists: ${htmlFilePath}"
+
+                        // Get the current working directory
+                        def cwd = pwd()
+
+                        // Navigate to the directory where HTML file is located
+                        dir(cwd) {
+                            // Create a zip file using jar command
+                            sh "jar -cf ${zipFilePath} ${htmlFilePath}"
                         }
+
+                        // Check if the zip file is created
+                        if (fileExists(zipFilePath)) {
+                            echo "Zip file created successfully: ${zipFilePath}"
+                        } else {
+                            error "Zip file not created: ${zipFilePath}"
+                        }
+
+                        // Archive the zip file as an artifact
+                        archiveArtifacts artifacts: zipFilePath, allowEmptyArchive: true
+                    } else {
+                        error "HTML file not found: ${htmlFilePath}"
+                    }
+                }
+            }
+        }   
+        /*
+        stage('Send HTML to Email') {
+            steps {
+                script {
+                    def emailSubject = "Sprint Planning HTML Report"
+                    def emailFrom = "StalkerJocca"
+                    def emailBody = "Please find the Sprint Planning HTML report attached."
+                    def emailRecipient = "${EMAIL_RECIPIENT}"
+                    def zipFilePath = "${WORKSPACE}/Sprint_Planning.zip"
+
+                    echo "Workspace directory: ${WORKSPACE}"
+                    echo "Zip file path: ${zipFilePath}"
+
+                    if (new File(zipFilePath).exists()) {
+                        echo "Zip file exists: ${zipFilePath}"
+                        mail (
+                            subject: emailSubject,
+                            from: emailFrom,
+                            body: emailBody,
+                            to: emailRecipient,
+                            attachments: zipFilePath,
+                            contentType: 'text/html'
+                        )
+                    } else {
+                        error "Zip file not found: ${zipFilePath}"
+                    }
                 }
             }
         }
+    */
     }
 }
