@@ -5,11 +5,12 @@ pipeline {
         EXCEL_FILE_PATH = 'excel-file.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
         CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
-        HTML_FILE_PATH = 'excel-data.html'
+        HTML_FILE_PATH = 'Sprint_Planning.html'
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
         GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
+        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // Change this to the desired email recipient
     }
     stages {
         stage('Download Excel File') {
@@ -331,9 +332,71 @@ pipeline {
                                 git commit -m 'Automated upload of HTML file'
                                 git push origin ${GITHUB_BRANCH}
                             """
+                    }
+                }
+            }   
+        }
+        stage('Zip HTML File') {
+            steps {
+                script {
+                    def htmlFilePath = "${env.WORKSPACE}/Sprint_Planning.html"
+                    def zipFilePath = "Sprint_Planning.zip"  // Use a relative path for the zip file
+
+                    if (fileExists(htmlFilePath)) {
+                        echo "HTML file exists: ${htmlFilePath}"
+
+                        try {
+                            // Create a zip file using jar command with properly quoted paths
+                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" Sprint_Planning.html"
+                            echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
+                        } catch (Exception e) {
+                            error "Failed to create zip file: ${e.message}"
                         }
+
+                        // Check if the zip file is created
+                        if (fileExists(zipFilePath)) {
+                            echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
+                        } else {
+                            error "Zip file not created: ${env.WORKSPACE}/${zipFilePath}"
+                        }
+
+                        // Archive the zip file as an artifact using a relative path
+                        archiveArtifacts artifacts: zipFilePath, allowEmptyArchive: true
+                    } else {
+                        error "HTML file not found: ${htmlFilePath}"
+                    }
+                }
+            }
+        }   
+        /*
+        stage('Send HTML to Email') {
+            steps {
+                script {
+                    def emailSubject = "Sprint Planning HTML Report"
+                    def emailFrom = "StalkerJocca"
+                    def emailBody = "Please find the Sprint Planning HTML report attached."
+                    def emailRecipient = "${EMAIL_RECIPIENT}"
+                    def zipFilePath = "${WORKSPACE}/Sprint_Planning.zip"
+
+                    echo "Workspace directory: ${WORKSPACE}"
+                    echo "Zip file path: ${zipFilePath}"
+
+                    if (new File(zipFilePath).exists()) {
+                        echo "Zip file exists: ${zipFilePath}"
+                        mail (
+                            subject: emailSubject,
+                            from: emailFrom,
+                            body: emailBody,
+                            to: emailRecipient,
+                            attachments: zipFilePath,
+                            contentType: 'text/html'
+                        )
+                    } else {
+                        error "Zip file not found: ${zipFilePath}"
+                    }
                 }
             }
         }
+    */
     }
 }

@@ -336,32 +336,31 @@ pipeline {
                 }
             }   
         }
-        stage('Check and Zip HTML file') {
+        stage('Zip HTML File') {
             steps {
                 script {
-                    def htmlFilePath = "${WORKSPACE}/${HTML_FILE_PATH}"
-                    def zipFilePath = "${WORKSPACE}/${HTML_FILE_PATH}.zip"
+                    def htmlFilePath = "${env.WORKSPACE}/Sprint_Planning.html"
+                    def zipFilePath = "Sprint_Planning.zip"  // Use a relative path for the zip file
 
                     if (fileExists(htmlFilePath)) {
                         echo "HTML file exists: ${htmlFilePath}"
 
-                        // Get the current working directory
-                        def cwd = pwd()
-
-                        // Navigate to the directory where HTML file is located
-                        dir(cwd) {
-                            // Create a zip file using jar command
-                            sh "jar -cf ${zipFilePath} ${htmlFilePath}"
+                        try {
+                            // Create a zip file using jar command with properly quoted paths
+                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" Sprint_Planning.html"
+                            echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
+                        } catch (Exception e) {
+                            error "Failed to create zip file: ${e.message}"
                         }
 
                         // Check if the zip file is created
                         if (fileExists(zipFilePath)) {
-                            echo "Zip file created successfully: ${zipFilePath}"
+                            echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
                         } else {
-                            error "Zip file not created: ${zipFilePath}"
+                            error "Zip file not created: ${env.WORKSPACE}/${zipFilePath}"
                         }
 
-                        // Archive the zip file as an artifact
+                        // Archive the zip file as an artifact using a relative path
                         archiveArtifacts artifacts: zipFilePath, allowEmptyArchive: true
                     } else {
                         error "HTML file not found: ${htmlFilePath}"
