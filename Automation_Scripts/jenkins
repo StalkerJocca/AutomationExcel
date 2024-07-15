@@ -368,7 +368,6 @@ pipeline {
                 }
             }
         }   
-        /*
         stage('Send HTML to Email') {
             steps {
                 script {
@@ -376,7 +375,7 @@ pipeline {
                     def emailFrom = "StalkerJocca"
                     def emailBody = "Please find the Sprint Planning HTML report attached."
                     def emailRecipient = "${EMAIL_RECIPIENT}"
-                    def zipFilePath = "${WORKSPACE}/Sprint_Planning.zip"
+                    def zipFilePath = "${env.WORKSPACE}/${zipFilePath}"
 
                     echo "Workspace directory: ${WORKSPACE}"
                     echo "Zip file path: ${zipFilePath}"
@@ -397,6 +396,5 @@ pipeline {
                 }
             }
         }
-    */
     }
 }
