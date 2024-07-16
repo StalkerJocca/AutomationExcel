@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/teste.xlsx'
-        EXCEL_FILE_PATH = 'excel-file.xlsx'
+        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/planning.xlsx'
+        EXCEL_FILE_PATH = 'planning.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
         CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
         HTML_FILE_PATH = 'Sprint_Planning.html'
@@ -71,20 +71,63 @@ pipeline {
                     <head>
                         <title>PLANNING | SCOPE</title>
                         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
                         <style>
                             
                             container { 
                                 max-width: 1000px;
                                 margin: auto;
+                                background-color: #f2f2f2; /* Gray background */
+
+                            }
+                            .main-wrapper {
+                                width: 100%;
+                                max-width: 1200px;
+                                min-width: 200px;
+                                margin: auto;
+                            }
+
+                            .main-content-bg {
+                                background-color: #f2f2f2; /* Gray background */
+                                padding: 20px;
+                                border-radius: 10px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
                             }
 
                             .main-content {
-                            margin-top: 30px;
+                                margin: 0 auto;
+                                background-color: #fff; /* White background */
+                                border-radius: 10px;
+                                overflow: hidden;
+                                position: relative;
+                                max-width: 1000px;
+                                padding: 20px;
+                                box-sizing: border-box;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                            }
+
+                            .main-content::before,
+                            .main-content::after {
+                                content: "";
+                                position: absolute;
+                                top: 0;
+                                right: 0;
+                                height: 20px;
+                                width: 20px;
+                                background: #f2f2f2;
+                                border-radius: 10px;
+                            }
+
+                            .main-content::after {
+                                right: auto;
+                                left: 0;
+                                background: #f2f2f2;
+                                border-radius: 10px 0 0 10px;
                             }
 
                             table {
                                 width: 100%;
-                                table-layout: fixed;
+                                table-layout: auto;
                                 align="center";
                                 background-color: #f2f2f2; /* Add this line to set the background color to light gray */
                                 border-collapse: collapse; /* Add this line to collapse the table borders */
@@ -92,19 +135,27 @@ pipeline {
                             th {
                                 padding: 8px;
                                 text-align: left;
-                                white-space: nowrap;
+                                white-space: normal;
                                 overflow: hidden;
+                                text-align: center; /* Center horizontally */
+                                vertical-align: middle; /* Center vertically */
                                 text-overflow: ellipsis;
                                 background-color: #ff0000; /* Change the background color to red */
                                 color: white;
                                 font-weight: bold;
+                                max-width: 200px; /* adjust the max width to your liking */
+                                word-wrap: break-word;
                             }
                             td {
                                 padding: 8px;
                                 text-align: left;
-                                white-space: nowrap;
+                                white-space: normal;
+                                text-align: center; /* Center horizontally */
+                                vertical-align: middle; /* Center vertically */
                                 overflow: hidden;
                                 text-overflow: ellipsis;
+                                max-width: 200px; /* adjust the max width to your liking */
+                                word-wrap: break-word;
                                 border-bottom: 1px solid #ddd; /* Add this line to add a bottom border to each cell */
                             }
 
@@ -130,10 +181,12 @@ pipeline {
                             margin: auto;
                             height: 70px; /* adjust the height to your needs */
                             display: flex;
+                            border-radius: 10px;
                             justify-content: center;
                             align-items: center;
                             background-color: #333; /* optional */
                             box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* optional */
+                            margin-bottom: 0.5em;
                             }
                             header img {
                             width: 140px; /* adjust the width to your needs */
@@ -150,10 +203,15 @@ pipeline {
                             background-color: #333;
                             color: #fff;
                             padding: 10px;
+                            border-radius: 10px;
                             text-align: center;
                             clear: both;
                             width: 100%;
                             box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* optional */
+                            }
+                            /* Add this to make the table responsive */
+                            .table-responsive {
+                                overflow-x: auto;
                             }
                             @media (max-width: 768px) {
                                 .header,.footer {
@@ -162,15 +220,14 @@ pipeline {
                             }
                         </style>
                     </head>
-
                     <tbody>
-                    <header class="header">
-                            <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
-                            <span>SPRINT PLANING</span>
-                    </header> 
-                        
-                        <div class="main-content">
-                            <div class="container">
+                        <div class="main-wrapper">
+                            <div class="main-content-bg">
+                                <div class="main-content table-responsive">
+                                <header class="header">
+                                        <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
+                                        <span>SPRINT PLANING</span>
+                                </header> 
                     """
 
                     boolean inTable = false
@@ -235,6 +292,8 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #321361;'>${column}</td>" // Green background for UAT
                                             } else if (column.trim().contains("IT ADM")) {
                                                 rowHtml += "<td style='background-color: #2286E5;'>${column}</td>" // Green background for IT ADM
+                                            } else if (column.trim().contains("WAITING")) {
+                                                rowHtml += "<td style='background-color: #EA8A08;'>${column}</td>" // Green background for WAITING
                                             } else {
                                                 rowHtml += "<td>${column}</td>"
                                             }
@@ -278,8 +337,28 @@ pipeline {
 
                         htmlContent += """
                                 <footer class="footer">
-                                    <p>&copy; 2024 Joao Carlos Costa</p><br>
-                                    <p>Project Manager | Scrum Master - joao.costa@caceis.com</p>
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col-md-4" style="margin-top: 0.7em;">
+                                                <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" alt="CACEIS" title="CACEIS" width="100" height="50">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <p>&copy; 2024 Joao Carlos Costa</p>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <p>
+                                                    <a href="mailto:joao.costa@caceis.com" target="_blank">
+                                                        <i class="fas fa-envelope" style="font-size: 18px; color: #f2f2f2;"></i> joao.costa@caceis.com
+                                                    </a>
+                                                </p>
+                                                <p>
+                                                    <a href="tel:+351965280453" target="_blank">
+                                                        <i class="fas fa-phone" style="font-size: 18px; color: #f2f2f2;"></i> +351 965 280 453
+                                                    </a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </footer>
                                 </div>
                                 </div>
@@ -375,20 +454,20 @@ pipeline {
                     def emailFrom = "StalkerJocca"
                     def emailBody = "Please find the Sprint Planning HTML report attached."
                     def emailRecipient = "${EMAIL_RECIPIENT}"
-                    def zipFilePath = "${env.WORKSPACE}/${zipFilePath}"
+                    def zipFilePath = "Sprint_Planning.zip"  // Use relative path for the zip file
 
-                    echo "Workspace directory: ${WORKSPACE}"
-                    echo "Zip file path: ${zipFilePath}"
+                    echo "Workspace directory: ${env.WORKSPACE}"
+                    echo "Zip file path: ${env.WORKSPACE}/${zipFilePath}"
 
-                    if (new File(zipFilePath).exists()) {
+                    if (fileExists(zipFilePath)) {
                         echo "Zip file exists: ${zipFilePath}"
-                        mail (
+                        emailext (
                             subject: emailSubject,
                             from: emailFrom,
                             body: emailBody,
                             to: emailRecipient,
-                            attachments: zipFilePath,
-                            contentType: 'text/html'
+                            attachmentsPattern: zipFilePath,  // Use the relative path for attachments
+                            mimeType: 'text/html'
                         )
                     } else {
                         error "Zip file not found: ${zipFilePath}"
