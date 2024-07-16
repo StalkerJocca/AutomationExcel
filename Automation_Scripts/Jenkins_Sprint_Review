@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/planning.xlsx'
-        EXCEL_FILE_PATH = 'planning.xlsx'
+        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/review.xlsx'
+        EXCEL_FILE_PATH = 'review.xlsx'
         CSV_FILE_PATH = 'excel-file.csv'
         CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
         HTML_FILE_PATH = 'Sprint_Planning.html'
