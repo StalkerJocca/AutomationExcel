@@ -279,6 +279,18 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #2286E5;'>${column}</td>" // Green background for IT ADM
                                             } else if (column.trim().contains("WAITING")) {
                                                 rowHtml += "<td style='background-color: #EA8A08;'>${column}</td>" // Green background for WAITING
+                                            } else if (column.trim().contains("NOT STARTED")) {
+                                                rowHtml += "<td style='background-color: #C8C6C6;'>${column}</td>" // Green background for NOT STARTED
+                                            } else if (column.trim().contains("STARTED")) {
+                                                rowHtml += "<td style='background-color: #06A427;'>${column}</td>" // Green background for STARTED
+                                            } else if (column.trim().contains("CLOSED")) {
+                                                rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for CLOSED
+                                            } else if (column.trim().contains("ENDED")) {
+                                                rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for ENDED
+                                            } else if (column.trim().contains("ACHIEVED")) {
+                                                rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for ACHIEVED
+                                            } else if (column.trim().contains("NOT ACHIEVED")) {
+                                                rowHtml += "<td style='background-color: #04BF70;'>${column}</td>" // Green background for NOT ACHIEVED
                                             } else {
                                                 rowHtml += "<td>${column}</td>"
                                             }
