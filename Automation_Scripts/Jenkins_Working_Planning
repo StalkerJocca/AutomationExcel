@@ -77,18 +77,18 @@ pipeline {
                             container { 
                                 max-width: 1000px;
                                 margin: auto;
-                                background-color: #f2f2f2; /* Gray background */
+                                background-color: #333; /* Gray background */
 
                             }
                             .main-wrapper {
                                 width: 100%;
-                                max-width: 1200px;
+                                max-width: 1100px;
                                 min-width: 200px;
                                 margin: auto;
                             }
 
                             .main-content-bg {
-                                background-color: #f2f2f2; /* Gray background */
+                                background-color: #7F7D7D; /* gray background */
                                 padding: 20px;
                                 border-radius: 10px;
                                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -96,7 +96,9 @@ pipeline {
 
                             .main-content {
                                 margin: 0 auto;
-                                background-color: #fff; /* White background */
+                                /* background-color: #fff;  White background */
+                                background-image: url('https://files.123freevectors.com/wp-content/original/121380-light-grey-abstract-texture-background-image.jpg');
+                                background-repeat: repeat; /* Add this line to make the background image repeat */
                                 border-radius: 10px;
                                 overflow: hidden;
                                 position: relative;
@@ -106,24 +108,7 @@ pipeline {
                                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                             }
 
-                            .main-content::before,
-                            .main-content::after {
-                                content: "";
-                                position: absolute;
-                                top: 0;
-                                right: 0;
-                                height: 20px;
-                                width: 20px;
-                                background: #f2f2f2;
-                                border-radius: 10px;
-                            }
-
-                            .main-content::after {
-                                right: auto;
-                                left: 0;
-                                background: #f2f2f2;
-                                border-radius: 10px 0 0 10px;
-                            }
+                            
 
                             table {
                                 width: 100%;
@@ -149,7 +134,7 @@ pipeline {
                             td {
                                 padding: 8px;
                                 text-align: left;
-                                white-space: normal;
+                                white-space: normal;    
                                 text-align: center; /* Center horizontally */
                                 vertical-align: middle; /* Center vertically */
                                 overflow: hidden;
@@ -194,7 +179,7 @@ pipeline {
                             margin-right: 0.5em;
                             }
                             header span {
-                            font-size: 40px;
+                            font-size: 35px;
                             font-weight: bold;
                             margin-left: 0.5em;
                             color: #fff;
@@ -383,23 +368,24 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                     script {
-                            def incrementedHTMLFilePath = sh(script: """
-                                cd AutomationExcel/${GITHUB_FOLDER}
-                                baseName=\$(basename "${HTML_FILE_PATH}" .html)
-                                extension=".html"
-                                index=1
-                                while [ -f "\${baseName}_\${index}\${extension}" ]; do
-                                    index=\$((index + 1))
-                                done
-                                echo "\${baseName}_\${index}\${extension}"
-                            """, returnStdout: true).trim()
+                        def incrementedHTMLFilePath = sh(script: """
+                            cd AutomationExcel/${GITHUB_FOLDER}
+                            baseName=\$(basename "${HTML_FILE_PATH}" .html)
+                            extension=".html"
+                            index=1
+                            while [ -f "\${baseName}_\${index}\${extension}" ]; do
+                                index=\$((index + 1))
+                            done
+                            echo "\${baseName}_\${index}\${extension}"
+                        """, returnStdout: true).trim()
 
+                        withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                             sh """
                                 if [ -d "AutomationExcel" ]; then
                                     cd AutomationExcel
-                                    git pull
+                                    git pull origin ${GITHUB_BRANCH}
                                 else
-                                    git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git
+                                    git clone https://github.com/StalkerJocca/AutomationExcel.git
                                     cd AutomationExcel
                                 fi
                                 mkdir -p ${GITHUB_FOLDER}
@@ -409,12 +395,15 @@ pipeline {
                                 git config user.name "${GITHUB_USERNAME}"
                                 git config user.email "joaocosta1695@gmail.com"
                                 git commit -m 'Automated upload of HTML file'
-                                git push origin ${GITHUB_BRANCH}
+                                git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git ${GITHUB_BRANCH}
                             """
                     }
                 }
-            }   
+            }
         }
+    }
+
+
         stage('Zip HTML File') {
             steps {
                 script {
