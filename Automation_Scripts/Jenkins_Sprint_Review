@@ -263,6 +263,8 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #FF0000;'>${column}</td>" // Red background for DEFECT
                                             } else if (column.trim().contains("STORY")) {
                                                 rowHtml += "<td style='background-color: #09A060;'>${column}</td>" // Green background for STORY
+                                            } else if (column.trim().contains("ACR")) {
+                                                rowHtml += "<td style='background-color: #09A060;'>${column}</td>" // Green background for ACR
                                             } else if (column.trim().contains("CHANGE REQUEST")) {
                                                 rowHtml += "<td style='background-color: #04BF70;'>${column}</td>" // Green background for CHANGE REQUEST
                                             } else if (column.trim().contains("CANCELLED")) {
