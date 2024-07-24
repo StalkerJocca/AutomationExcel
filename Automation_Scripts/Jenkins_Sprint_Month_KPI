@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'URL1', description: 'Enter the URL Image to display in the Graphic 1')
+        string(name: 'URL2', description: 'Enter the URL Image to display in the Graphic 2')
+        string(name: 'URL3', description: 'Enter the URL Image to display in the Graphic 3')
+    }
     environment {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/Concerto_Month.xlsx'
         EXCEL_FILE_PATH = 'Concerto_Month.xlsx'
@@ -62,7 +67,7 @@ pipeline {
                     def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "GOALS", "STATUS", "EXPECTED", "TICKETS", "ESTIMATED", "NOT ESTIMATED", "% ESTIMATED", "% NOT ESTIMATED", "STORYPOINTS", "SPRINT STORYPOINTS"]
                     def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "BACKLOG", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES", "DELIVERIES", "PLANNED SCOPE", "METRICS", "ADDED SCOPE"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
-                    def lines = csvContent.split('\n')
+                    def lines = csvContent.split('\n')                
                     
                     def htmlContent = """
                     <!DOCTYPE html>
@@ -184,6 +189,19 @@ pipeline {
                             margin-left: 0.5em;
                             color: #fff;
                             }
+                            .image-container {
+                                width: 33.33%; /* assuming three images in a row */
+                                float: left;
+                                padding: 10px;
+                            }
+
+                            .responsive-image {
+                                width: 100%;
+                                height: auto;
+                                max-width: 100%;
+                                display: block;
+                                margin: 0 auto;
+                            }
                             .footer {
                             background-color: #333;
                             color: #fff;
@@ -203,6 +221,13 @@ pipeline {
                                     padding: 5px;
                                 }
                             }
+                            @media (max-width: 768px) {
+                                .image-container {
+                                    width: 100%;
+                                    float: none;
+                                    padding: 10px;
+                                }
+                            }
                         </style>
                     </head>
                     <tbody>
@@ -214,7 +239,6 @@ pipeline {
                                         <span>MONTHLY STATUS</span>
                                 </header> 
                     """
-
                     boolean inTable = false
                         lines.drop(1).eachWithIndex { line, index ->
                             if (line.trim().isEmpty() || line.contains("TABLE")) {
@@ -229,7 +253,6 @@ pipeline {
                                 if (columns.size() == 0) {
                                     return // Skip lines that do not have any columns
                                 }
-
                                 def firstColumn = columns[0].trim()
 
                                 if (TYPE_KEYWORDS.any { keyword -> firstColumn.startsWith(keyword) }) {
@@ -256,6 +279,7 @@ pipeline {
                                         htmlContent += "<br>" // Add a break after each section header
                                     } else {
                                         // Add row to the table
+                                        // COLUMN SECTION
                                         //htmlContent += "<tr>${columns.collect { column -> "<td>${column}</td>" }.join('')}</tr>"
                                         def rowHtml = """<tr>"""
                                             columns.each { column ->
@@ -293,13 +317,23 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for ACHIEVED
                                             } else if (column.trim().contains("NOT ACHIEVED")) {
                                                 rowHtml += "<td style='background-color: #04BF70;'>${column}</td>" // Green background for NOT ACHIEVED
+                                            } else if (column.trim().contains("IMAGE1")) {
+                                                rowHtml += "<td><img src='${params.URL1}' alt='Graphic 1' style='width:100%;height:auto;'></td>"
+                                            } else if (column.trim().contains("IMAGE2")) {
+                                                rowHtml += "<td><img src='${params.URL2}' alt='Graphic 2' style='width:100%;height:auto;'></td>"
+                                            } else if (column.trim().contains("IMAGE3")) {
+                                                rowHtml += "<td><img src='${params.URL3}' alt='Graphic 3' style='width:100%;height:auto;'></td>"
+                                            } else if (column.trim().contains("IMAGE1")) { 
+                                                rowHtml += "<td>TESTE</td>" 
                                             } else {
                                                 rowHtml += "<td>${column}</td>"
                                             }
+                                            
                                         }
                                         rowHtml += "</tr>"
                                         htmlContent += rowHtml
                                     }
+                                
                                 } else {
                                     if (TYPE_HEADINGS.any { firstColumn.startsWith(it) }) {
                                         htmlContent += "<br>" // Add a break after each section header
@@ -313,21 +347,25 @@ pipeline {
                                             inTable = false
                                         }
                                        htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.join(', ').replaceFirst('\\*', '')}</p>"
+                                    // ROW SECTION
                                     } else {
-                                        if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
+                                        if (firstColumn.trim().contains("IMAGE1")) {
+                                            htmlContent += "<div class='image-container'><img src='${URL1}' alt='GRAPHIC 1' class='responsive-image'/></div>"
+                                        } else if (firstColumn.trim().contains("IMAGE2")) {
+                                            htmlContent += "<div class='image-container'><img src='${URL2}' alt='GRAPHIC 2' class='responsive-image'/></div>"
+                                        } else if (firstColumn.trim().contains("IMAGE3")) {
+                                            htmlContent += "<div class='image-container'><img src='${URL3}' alt='GRAPHIC 3' class='responsive-image'/></div>"    
+                                        } else if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
                                             // Add paragraph if the first column starts with capital letters
-                                            // htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
                                             htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
                                         } else {
                                             // Add paragraph with bullet point if the first column does not start with capital letters
                                             htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.findAll { it.trim() }.join(' ')}</p>"
-                                            //htmlContent += "<p><span style='color: #b30000;'>&bull;</span>${columns.join(' ')}</p>"
                                         }
                                     }
                                 }
                             }
                         }
-                        
                         if (inTable) {
                             // Close the table if still open
                             htmlContent += "</tbody></table>"
