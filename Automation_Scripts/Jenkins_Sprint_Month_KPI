@@ -1,6 +1,7 @@
 pipeline {
     agent any
     parameters {
+        string(name: 'PROJECT', description: 'PLease enter the name of the Project: (CONCERTO | COMPASS)')
         string(name: 'STORYPOINTS', description: 'Enter the URL Image to display the STORYPOINTS:')
         string(name: 'DELIVERY', description: 'Enter the URL Image to display the DELIVERY:')
         string(name: 'BACKLOG', description: 'Enter the URL Image to display the BACKLOG:')
@@ -15,8 +16,8 @@ pipeline {
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
-        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // Change this to the desired email recipient
+        GITHUB_CREDENTIALS_ID = 'github-credentials' // CREDENTIAL ID FOR GIT
+        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // EMAIL RECIPIENT
     }
     stages {
         stage('Download Excel File') {
@@ -75,7 +76,7 @@ pipeline {
                     <html>
 
                     <head>
-                        <title>MONTH | KPI</title>
+                        <title>MONTH | ${PROJECT} | KPI</title>
                         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
                         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
                         <style>
@@ -227,6 +228,7 @@ pipeline {
                             background-color: #333;
                             color: #fff;
                             padding: 10px;
+                            margin-top: 10px;
                             border-radius: 10px;
                             text-align: center;
                             clear: both;
