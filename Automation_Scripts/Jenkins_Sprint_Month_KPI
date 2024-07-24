@@ -1,10 +1,10 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'URL1', description: 'Enter the URL Image to display the STORYPOINTS')
-        string(name: 'URL2', description: 'Enter the URL Image to display the BACKLOG')
-        string(name: 'URL3', description: 'Enter the URL Image to display the DELIVERY')
-        string(name: 'URL4', description: 'Enter the URL Image to display the ANUAL DELIVERIES')
+        string(name: 'STORYPOINTS', description: 'Enter the URL Image to display the STORYPOINTS:')
+        string(name: 'DELIVERY', description: 'Enter the URL Image to display the DELIVERY:')
+        string(name: 'BACKLOG', description: 'Enter the URL Image to display the BACKLOG:')
+        string(name: 'ANUAL_DELIVERIES', description: 'Enter the URL Image to display the ANUAL DELIVERIES:')
     }
     environment {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/Concerto_Month.xlsx'
@@ -66,7 +66,7 @@ pipeline {
             steps {
                 script {
                     def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "GOALS", "STATUS", "EXPECTED", "TICKETS", "ESTIMATED", "NOT ESTIMATED", "% ESTIMATED", "% NOT ESTIMATED", "STORYPOINTS", "SPRINT STORYPOINTS"]
-                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "BACKLOG", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES", "DELIVERIES", "PLANNED SCOPE", "METRICS", "ADDED SCOPE"]
+                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "BACKLOG", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "CHART", "ANUAL CHART", "DEFINITION OF GOALS", "NOTES", "GREETINGS", "DELIVERIES", "PLANNED SCOPE", "METRICS", "ADDED SCOPE"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
                     def lines = csvContent.split('\n')                
                     
@@ -198,14 +198,16 @@ pipeline {
                             .responsive-image-center{
                                 width: 100%;
                                 height: auto;
-                                max-width: 500px;
+                                max-width: 700px;
+                                max-height: 400px;
                                 margin: 0 auto;
+                                margin-top: 10px;
                                 border-radius: 10px;
                                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
                                 }
 
                             .image-container {
-                                width: 33.33%; /* assuming three images in a row */
+                                width: 49.5%; /* assuming three images in a row */
                                 float: left;
                                 padding: 10px;
                             }
@@ -213,9 +215,13 @@ pipeline {
                             .responsive-image {
                                 width: 100%;
                                 height: auto;
+                                max-height: 200px;
                                 max-width: 100%;
                                 display: block;
                                 margin: 0 auto;
+                                border-radius: 10px;
+                                margin-bottom: 10px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
                             }
                             .footer {
                             background-color: #333;
@@ -335,14 +341,6 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for ACHIEVED
                                             } else if (column.trim().contains("NOT ACHIEVED")) {
                                                 rowHtml += "<td style='background-color: #04BF70;'>${column}</td>" // Green background for NOT ACHIEVED
-                                            } else if (column.trim().contains("IMAGE1")) {
-                                                rowHtml += "<td><img src='${params.URL1}' alt='Graphic 1' style='width:100%;height:auto;'></td>"
-                                            } else if (column.trim().contains("IMAGE2")) {
-                                                rowHtml += "<td><img src='${params.URL2}' alt='Graphic 2' style='width:100%;height:auto;'></td>"
-                                            } else if (column.trim().contains("IMAGE3")) {
-                                                rowHtml += "<td><img src='${params.URL3}' alt='Graphic 3' style='width:100%;height:auto;'></td>"
-                                            } else if (column.trim().contains("IMAGE1")) { 
-                                                rowHtml += "<td>TESTE</td>" 
                                             } else {
                                                 rowHtml += "<td>${column}</td>"
                                             }
@@ -368,18 +366,27 @@ pipeline {
                                     // ROW SECTION
                                     } else {
                                         if (firstColumn.trim().contains("IMAGE1")) {
-                                            htmlContent += "<div class='image-container'><img src='${URL1}' alt='GRAPHIC 1' class='responsive-image'/></div>"
+                                            htmlContent += "<div class='image-container'><img src='${STORYPOINTS}' alt='STORYPOINTS' class='responsive-image'/></div>"
                                         } else if (firstColumn.trim().contains("IMAGE2")) {
-                                            htmlContent += "<div class='image-container'><img src='${URL2}' alt='GRAPHIC 2' class='responsive-image'/></div>"
+                                            htmlContent += "<div class='image-container'><img src='${DELIVERY}' alt='DELIVERY' class='responsive-image'/></div>"
+                                            htmlContent += "<br>" // Add a break 
+                                            htmlContent += "<br>" // Add a break 
                                         } else if (firstColumn.trim().contains("IMAGE3")) {
-                                            htmlContent += "<div class='image-container'><img src='${URL3}' alt='GRAPHIC 3' class='responsive-image'/></div>"    
+                                            htmlContent += "<div class='image-container-center'><img src='${BACKLOG}' alt='BACKLOG' class='responsive-image-center'/></div>"
+                                            htmlContent += "<br>" // Add a break after each section header    
                                         } else if (firstColumn.trim().contains("IMAGE4")) {
-                                            htmlContent += "<div class='image-container-center'><img src='${URL4}' alt='GRAPHIC 4' class='responsive-image-center'/></div>"
+                                            htmlContent += "<div class='image-container-center'><img src='${ANUAL_DELIVERIES}' alt='ANUAL DELIVERY' class='responsive-image-center'/></div>"
+                                            htmlContent += "<br>" // Add a break 
                                         } else if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
                                             // Add paragraph if the first column starts with capital letters
                                             htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
+                                            htmlContent += "<br>" // Add a break
                                         } else if (firstColumn.contains("PROJECT")) { 
-                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make PROJECT bold
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make PROJECT BOLD
+                                        } else if (firstColumn.contains("DATE")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make DATE BOLD
+                                        } else if (firstColumn.contains("MONTH")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make MONTH BOLD
                                         } else {
                                             // Add paragraph with bullet point if the first column does not start with capital letters
                                             htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.findAll { it.trim() }.join(' ')}</p>"
@@ -391,7 +398,7 @@ pipeline {
                         if (inTable) {
                             // Close the table if still open
                             htmlContent += "</tbody></table>"
-                            htmlContent += "<br>" // Add a break after each section header
+                            htmlContent += "<br>" // Add a break
                         }
 
                         htmlContent += """
