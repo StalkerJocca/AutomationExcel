@@ -4,6 +4,7 @@ pipeline {
         string(name: 'URL1', description: 'Enter the URL Image to display in the Graphic 1')
         string(name: 'URL2', description: 'Enter the URL Image to display in the Graphic 2')
         string(name: 'URL3', description: 'Enter the URL Image to display in the Graphic 3')
+        string(name: 'URL4', description: 'Enter the URL Image to display in the Graphic 4')
     }
     environment {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/Concerto_Month.xlsx'
@@ -189,6 +190,20 @@ pipeline {
                             margin-left: 0.5em;
                             color: #fff;
                             }
+                            .image-container-center{
+                            width: 100%;
+                            margin: 0 auto;
+                            text-align: center;
+                            }
+                            .responsive-image-center{
+                                width: 100%;
+                                height: auto;
+                                max-width: 500px;
+                                margin: 0 auto;
+                                border-radius: 10px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                                }
+
                             .image-container {
                                 width: 33.33%; /* assuming three images in a row */
                                 float: left;
@@ -217,15 +232,18 @@ pipeline {
                                 overflow-x: auto;
                             }
                             @media (max-width: 768px) {
-                                .header,.footer {
-                                    padding: 5px;
-                                }
-                            }
-                            @media (max-width: 768px) {
                                 .image-container {
                                     width: 100%;
                                     float: none;
                                     padding: 10px;
+                                }
+                                .header,.footer {
+                                    padding: 5px;
+                                }
+                                .responsive-image-center{
+                                    width: 100%;
+                                    height: auto;
+                                    max-width: 300px;
                                 }
                             }
                         </style>
@@ -355,9 +373,13 @@ pipeline {
                                             htmlContent += "<div class='image-container'><img src='${URL2}' alt='GRAPHIC 2' class='responsive-image'/></div>"
                                         } else if (firstColumn.trim().contains("IMAGE3")) {
                                             htmlContent += "<div class='image-container'><img src='${URL3}' alt='GRAPHIC 3' class='responsive-image'/></div>"    
+                                        } else if (firstColumn.trim().contains("IMAGE4")) {
+                                            htmlContent += "<div class='image-container-center'><img src='${URL4}' alt='GRAPHIC 4' class='responsive-image-center'/></div>"
                                         } else if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
                                             // Add paragraph if the first column starts with capital letters
                                             htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
+                                        } else if (firstColumn.contains("PROJECT")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make PROJECT bold
                                         } else {
                                             // Add paragraph with bullet point if the first column does not start with capital letters
                                             htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.findAll { it.trim() }.join(' ')}</p>"
