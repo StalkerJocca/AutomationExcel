@@ -1,10 +1,10 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'URL1', description: 'Enter the URL Image to display in the Graphic 1')
-        string(name: 'URL2', description: 'Enter the URL Image to display in the Graphic 2')
-        string(name: 'URL3', description: 'Enter the URL Image to display in the Graphic 3')
-        string(name: 'URL4', description: 'Enter the URL Image to display in the Graphic 4')
+        string(name: 'URL1', description: 'Enter the URL Image to display the STORYPOINTS')
+        string(name: 'URL2', description: 'Enter the URL Image to display the BACKLOG')
+        string(name: 'URL3', description: 'Enter the URL Image to display the DELIVERY')
+        string(name: 'URL4', description: 'Enter the URL Image to display the ANUAL DELIVERIES')
     }
     environment {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/Concerto_Month.xlsx'
