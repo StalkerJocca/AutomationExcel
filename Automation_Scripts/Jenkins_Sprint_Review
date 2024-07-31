@@ -397,43 +397,43 @@ pipeline {
             }
         }
         stage('Upload HTML to GitHub') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-            script {
-                def incrementedHTMLFilePath = sh(script: """
-                            cd AutomationExcel/${GITHUB_FOLDER}
-                            baseName=\$(basename "${HTML_FILE_PATH}" .html)
-                            extension=".html"
-                            index=1
-                            while [ -f "\${baseName}_\${index}\${extension}" ]; do
-                                index=\$((index + 1))
-                            done
-                            echo "\${baseName}_\${index}\${extension}"
-                        """, returnStdout: true).trim()
-
+            steps {
                 withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                    sh """
-                                if [ -d "AutomationExcel" ]; then
-                                    cd AutomationExcel
-                                    git pull origin ${GITHUB_BRANCH}
-                                else
-                                    git clone https://github.com/StalkerJocca/AutomationExcel.git
-                                    cd AutomationExcel
-                                fi
-                                mkdir -p ${GITHUB_FOLDER}
-                                cp ../${HTML_FILE_PATH} ${GITHUB_FOLDER}/${incrementedHTMLFilePath}
-                                cd ${GITHUB_FOLDER}
-                                git add ${incrementedHTMLFilePath}
-                                git config user.name "${GITHUB_USERNAME}"
-                                git config user.email "joaocosta1695@gmail.com"
-                                git commit -m 'Automated upload of HTML file'
-                                git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git ${GITHUB_BRANCH}
-                            """
+                    script {
+                        def incrementedHTMLFilePath = sh(script: """
+                                    cd AutomationExcel/${GITHUB_FOLDER}
+                                    baseName=\$(basename "${HTML_FILE_PATH}" .html)
+                                    extension=".html"
+                                    index=1
+                                    while [ -f "\${baseName}_\${index}\${extension}" ]; do
+                                        index=\$((index + 1))
+                                    done
+                                    echo "\${baseName}_\${index}\${extension}"
+                                """, returnStdout: true).trim()
+
+                        withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+                            sh """
+                                        if [ -d "AutomationExcel" ]; then
+                                            cd AutomationExcel
+                                            git pull origin ${GITHUB_BRANCH}
+                                        else
+                                            git clone https://github.com/StalkerJocca/AutomationExcel.git
+                                            cd AutomationExcel
+                                        fi
+                                        mkdir -p ${GITHUB_FOLDER}
+                                        cp ../${HTML_FILE_PATH} ${GITHUB_FOLDER}/${incrementedHTMLFilePath}
+                                        cd ${GITHUB_FOLDER}
+                                        git add ${incrementedHTMLFilePath}
+                                        git config user.name "${GITHUB_USERNAME}"
+                                        git config user.email "joaocosta1695@gmail.com"
+                                        git commit -m 'Automated upload of HTML file'
+                                        git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git ${GITHUB_BRANCH}
+                                    """
+                        }
+                    }
                 }
             }
         }
-    }
-}
         stage('Zip HTML File') {
             steps {
                 script {
