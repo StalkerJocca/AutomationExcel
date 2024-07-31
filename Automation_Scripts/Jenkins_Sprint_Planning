@@ -1,16 +1,16 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'PROJECT', description: 'PLease enter the name of the Project: (CONCERTO | COMPASS)')
+        choice(name: 'PROJECT', description: 'Please enter the name of the Project:', choices: ['CONCERTO', 'COMPASS'])
         string(name: 'STORYPOINTS', description: 'Enter the URL Image to display the STORYPOINTS:')
-        string(name: 'TESTE', description: 'Enter the URL Image to display the TESTE:')
+        string(name: 'BACKLOG', description: 'Enter the URL Image to display the BACKLOG:')
     }
     environment {
-        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/planning.xlsx'
-        EXCEL_FILE_PATH = 'planning.xlsx'
+        EXCEL_FILE_URL = ''
+        EXCEL_FILE_PATH = ''
         CSV_FILE_PATH = 'excel-file.csv'
         CLEANED_CSV_FILE_PATH = 'cleaned-excel-file.csv'
-        HTML_FILE_PATH = 'Sprint_Planning.html'
+        HTML_FILE_PATH = ''
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
@@ -18,6 +18,23 @@ pipeline {
         EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // Change this to the desired email recipient
     }
     stages {
+        stage('Set Excel File Path') {
+            steps {
+                script {
+                    if (params.PROJECT == 'CONCERTO') {
+                        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/CONCERTO_Planning.xlsx'
+                        EXCEL_FILE_PATH = 'CONCERTO_Planning.xlsx'
+                        HTML_FILE_PATH = 'SPRINT_PLANNING_CONCERTO.html'
+                    } else if (params.PROJECT == 'COMPASS') {
+                        EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/COMPASS_Planning.xlsx'
+                        EXCEL_FILE_PATH = 'COMPASS_Planning.xlsx'
+                        HTML_FILE_PATH = 'SPRINT_PLANNING_COMPASS.html'
+                    } else {
+                        error "Invalid project name: ${params.PROJECT}"
+                    }
+                }
+            }
+        }
         stage('Download Excel File') {
             steps {
                 script {
@@ -65,7 +82,7 @@ pipeline {
             steps {
                 script {
                     def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY"]
-                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
+                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "METRICS", "DATES", "GREETINGS", "DEVELOPMENT AND SCOPE", "ANALYSE AND TESTING", "DEFINITION OF GOALS", "NOTES"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
                     def lines = csvContent.split('\n')
                     
@@ -189,6 +206,23 @@ pipeline {
                             margin-left: 0.5em;
                             color: #fff;
                             }
+                            .image-container {
+                                width: 49.5%; /* assuming three images in a row */
+                                float: left;
+                                padding: 10px;
+                            }
+
+                            .responsive-image {
+                                width: 100%;
+                                height: auto;
+                                max-height: 200px;
+                                max-width: 100%;
+                                display: block;
+                                margin: 0 auto;
+                                border-radius: 10px;
+                                margin-bottom: 10px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                            }
                             .footer {
                             background-color: #333;
                             color: #fff;
@@ -207,6 +241,11 @@ pipeline {
                                 .header,.footer {
                                     padding: 5px;
                                 }
+                                .image-container {
+                                    width: 100%;
+                                    float: none;
+                                    padding: 10px;
+                                }
                             }
                         </style>
                     </head>
@@ -216,7 +255,7 @@ pipeline {
                                 <div class="main-content table-responsive">
                                 <header class="header">
                                         <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
-                                        <span>SPRINT PLANING | ${PROJECT} |</span>
+                                        <span>SPRINT | ${PROJECT} | PLANING</span>
                                 </header> 
                     """
 
@@ -319,21 +358,21 @@ pipeline {
                                         }
                                        htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.join(', ').replaceFirst('\\*', '')}</p>"
                                     } else {
-                                        if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
-                                            // Add paragraph if the first column starts with capital letters
-                                            // htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
-                                            htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
-                                        } else if (firstColumn.trim().contains("IMAGE1")) {
+                                        if (firstColumn.trim().contains("IMAGE1")) {
                                             htmlContent += "<div class='image-container'><img src='${STORYPOINTS}' alt='STORYPOINTS' class='responsive-image'/></div>"
                                             // htmlContent += "<br>" // Add a break after each section header
                                         } else if (firstColumn.trim().contains("IMAGE2")) {
-                                            htmlContent += "<div class='image-container'><img src='${TESTE}' alt='TESTE' class='responsive-image'/></div>"
+                                            htmlContent += "<div class='image-container'><img src='${BACKLOG}' alt='BACKLOG' class='responsive-image'/></div>"
                                             htmlContent += "<br>" // Add a break 
                                             htmlContent += "<br>" // Add a break 
+                                        } else if (firstColumn.matches(/^[A-Z][a-zA-Z]*$/)) {
+                                            // Add paragraph if the first column starts with capital letters
+                                            // htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
+                                            htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
                                         } else if (firstColumn.contains("PROJECT")) { 
                                             htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make PROJECT BOLD
-                                        } else if (firstColumn.contains("DATE")) { 
-                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make DATE BOLD
+                                        } else if (firstColumn.contains("DURATION")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make DURATION BOLD
                                         } else if (firstColumn.contains("MONTH")) { 
                                             htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make MONTH BOLD
                                         } else {
