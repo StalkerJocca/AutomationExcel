@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'PROJECT', description: 'PLease enter the name of the Project: (CONCERTO | COMPASS)')
+        string(name: 'DELIVERY', description: 'Enter the URL Image to display the DELIVERY:')
+        string(name: 'STORYPOINTS', description: 'Enter the URL Image to display the STORYPOINTS:')
+    }
     environment {
         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/review.xlsx'
         EXCEL_FILE_PATH = 'review.xlsx'
@@ -69,7 +74,7 @@ pipeline {
                     <html>
 
                     <head>
-                        <title>SPRINT | REVIEW</title>
+                        <title>SPRINT | ${PROJECT} | REVIEW</title>
                         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
                         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
                         <style>
@@ -211,7 +216,7 @@ pipeline {
                                 <div class="main-content table-responsive">
                                 <header class="header">
                                         <img src="https://xnbgtr.stripocdn.email/content/guids/CABINET_b2664dcd6b7ab082c7e0e810eec3a7bf97d2dc2b619ef620d690734fd25399fb/images/caceis_white.png" title="BST CONCERTO" alt="CACEIS">
-                                        <span>SPRINT REVIEW</span>
+                                        <span>SPRINT REVIEW | ${PROJECT} |</span>
                                 </header> 
                     """
 
@@ -318,6 +323,19 @@ pipeline {
                                             // Add paragraph if the first column starts with capital letters
                                             // htmlContent += "<p>${columns[0..<(columns.size() - 3)].join(' ')}</p>"
                                             htmlContent += "<p>${columns[0..<(columns.size() - 3)].findAll { it.trim() }.join(' ')}</p>"
+                                        } else if (firstColumn.trim().contains("IMAGE1")) {
+                                            htmlContent += "<div class='image-container'><img src='${DELIVERY}' alt='DELIVERY' class='responsive-image'/></div>"
+                                            // htmlContent += "<br>" // Add a break after each section header
+                                        } else if (firstColumn.trim().contains("IMAGE2")) {
+                                            htmlContent += "<div class='image-container'><img src='${STORYPOINTS}' alt='TYPE' class='responsive-image'/></div>"
+                                            htmlContent += "<br>" // Add a break 
+                                            htmlContent += "<br>" // Add a break  
+                                        } else if (firstColumn.contains("PROJECT")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make PROJECT BOLD
+                                        } else if (firstColumn.contains("DATE")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make DATE BOLD
+                                        } else if (firstColumn.contains("MONTH")) { 
+                                            htmlContent += "<p><b>${columns.findAll { it.trim() }.join(' ')}</b></p>" // Make MONTH BOLD
                                         } else {
                                             // Add paragraph with bullet point if the first column does not start with capital letters
                                             htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.findAll { it.trim() }.join(' ')}</p>"
