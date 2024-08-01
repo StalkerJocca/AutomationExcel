@@ -2,6 +2,7 @@ pipeline {
     agent any
     parameters {
         choice(name: 'PROJECT', description: 'Please enter the name of the Project:', choices: ['CONCERTO', 'COMPASS'])
+        string(name: 'LAST_SPRINTS', description: 'Enter the URL Image to display the LAST_SPRINTS:')
         string(name: 'STORYPOINTS', description: 'Enter the URL Image to display the STORYPOINTS:')
         string(name: 'DELIVERY', description: 'Enter the URL Image to display the DELIVERY:')
         string(name: 'BACKLOG', description: 'Enter the URL Image to display the BACKLOG:')
@@ -395,7 +396,9 @@ pipeline {
                                        htmlContent += "<p><span style='color: #b30000;'>&bull;</span> ${columns.join(', ').replaceFirst('\\*', '')}</p>"
                                     // ROW SECTION
                                     } else {
-                                        if (firstColumn.trim().contains("IMAGE1")) {
+                                        if (firstColumn.trim().contains("IMAGE0")) {
+                                            htmlContent += "<div class='image-container'><img src='${params.LAST_SPRINTS}' alt='LAST_SPRINTS' class='responsive-image'/></div>"
+                                        } else if (firstColumn.trim().contains("IMAGE1")) {
                                             htmlContent += "<div class='image-container'><img src='${params.STORYPOINTS}' alt='STORYPOINTS' class='responsive-image'/></div>"
                                         } else if (firstColumn.trim().contains("IMAGE2")) {
                                             htmlContent += "<div class='image-container'><img src='${params.DELIVERY}' alt='DELIVERY' class='responsive-image'/></div>"
