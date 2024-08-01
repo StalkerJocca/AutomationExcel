@@ -86,7 +86,7 @@ pipeline {
             steps {
                 script {
                     def TYPE_KEYWORDS = ["SPRINT", "QUAL", "PRIORITY", "GOALS", "STATUS", "JIRA", "EXPECTED", "TICKETS", "ENVIRONMENT", "DESCRIPTION", "EXPECTED DATE", "ESTIMATED", "NOT ESTIMATED", "% ESTIMATED", "% NOT ESTIMATED", "STORYPOINTS", "SPRINT STORYPOINTS"]
-                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "BACKLOG", "DEVELOPMENT AND SCOPE", "WAITING FOR DEPLOYMENT", "ANALYSE AND TESTING", "CHART", "ANUAL CHART", "DEFINITION OF GOALS", "DEPLOYMENTS", "NOTES", "GREETINGS", "DELIVERIES", "PLANNED SCOPE", "METRICS", "ADDED SCOPE"]
+                    def TYPE_HEADINGS = ["RESUME", "EXPECTED DATES OF DEPLOYMENT", "DATES", "BACKLOG", "DEVELOPMENT AND SCOPE", "WAITING FOR DEPLOYMENT", "ANALYSE AND TESTING", "CHART", "ANUAL CHART", "LAST SPRINTS", "DEFINITION OF GOALS", "DEPLOYMENTS", "NOTES", "GREETINGS", "DELIVERIES", "PLANNED SCOPE", "METRICS", "ADDED SCOPE"]
                     def csvContent = readFile file: "${CLEANED_CSV_FILE_PATH}"
                     def lines = csvContent.split('\n')                
                     
@@ -397,7 +397,8 @@ pipeline {
                                     // ROW SECTION
                                     } else {
                                         if (firstColumn.trim().contains("IMAGE0")) {
-                                            htmlContent += "<div class='image-container'><img src='${params.LAST_SPRINTS}' alt='LAST_SPRINTS' class='responsive-image'/></div>"
+                                            htmlContent += "<div class='image-container-center'><img src='${params.LAST_SPRINTS}' alt='LAST_SPRINTS' class='responsive-image-center'/></div>"
+                                            htmlContent += "<br>" // Add a break
                                         } else if (firstColumn.trim().contains("IMAGE1")) {
                                             htmlContent += "<div class='image-container'><img src='${params.STORYPOINTS}' alt='STORYPOINTS' class='responsive-image'/></div>"
                                         } else if (firstColumn.trim().contains("IMAGE2")) {
