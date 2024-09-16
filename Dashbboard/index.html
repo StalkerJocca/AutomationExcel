@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+  <style>
+    .sidebar {
+      background-color: #f0f0f0;
+      padding-top: 2%;
+      height: 100%;
+      position: fixed;
+      left: 0;
+      top: 50px; /* adjusted top position to account for top bar */
+      width: 200px;
+      transition: left 0.5s;
+    }
+    .logo{
+      text-align: center;
+      margin-left: 5px;
+      margin-bottom: 20px;
+    }
+    .main-content {
+      padding: 30px;
+      margin-left: 200px;
+      margin-top: 50px; /* adjusted top margin to account for top bar */
+    }
+    .project-dashboard .progress {
+      height: 30px;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .project-dashboard .progress-bar {
+      background-color: #055269; /* Bootstrap's primary color */
+      transition: width 0.5s ease;
+    }
+
+    .project-dashboard .progress-text {
+      font-size: 15px;
+      color: #fff;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .hide-sidebar {
+      left: -200px;
+    }
+    .main-content-hide {
+      margin-left: 0;
+    }
+    .top-bar {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1;
+    }
+    .sidebar-toggle-container {
+      position: fixed;
+      top: 50px; /* adjust to match the top bar height */
+      left: 0;
+      z-index: 1;
+    }
+    /* Add these styles to make the icon responsive and aligned to the left */
+    #sidebar-toggle-icon {
+      font-size: 24px;
+      margin-left: 10px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @media (max-width: 768px) {
+      #sidebar-toggle-icon {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-2 text-left">
+          <img src="./Images/logo-horizontal-blue.png" alt="Logo" width="auto" height="50 px">
+          <!-- <span>PROJECTS DASHBOARD</span> -->
+        </div>
+        <div class="col-md-10 text-right">
+          <button class="btn btn-outline-primary" id="show-btn">
+            <i class="bi bi-list" id="sidebar-toggle-icon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-xs-2 col-md-2 col-lg-2 sidebar hide-sidebar">
+        <img src="./Images/logo-horizontal-blue.png" alt="Logo" width="auto" height="60px" class="logo">
+        <nav class="navbar navbar-expand-lg navbar-light">
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link bi bi-music-note-beamed" href="#project1"> CONCERTO</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link bi bi-compass" href="#project2"> COMPASS</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link bi bi-strava" href="#project3"> K-TECH AGILE</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link bi bi-boxes" href="#project4"> JENKINS</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="col-xs-10 col-md-10 col-lg-10 main-content main-content-hide">
+        <br>
+
+        <h1 class="p-3 mb-2 bg-dark text-light bi bi-kanban-fill"> - PROJECTS</h1>
+        <p class="p-3 mb-2 bg-light text-dark">AREA TO DISPLAY DASHBOARDS OF PROJECTS</p>
+        
+        <hr class="hr hr-blurry" />
+
+        <div class="project-dashboard">
+          <h2 class="p-3 mb-2 bg-dark text-light bi bi-music-note-beamed">Project 1</h2>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">
+              <span class="progress-text">60%</span>
+            </div>
+          </div>
+          <h2 class="p-3 mb-2 bg-dark text-light bi bi-compass">Project 2</h2>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
+              <span class="progress-text">30%</span>
+            </div>
+          </div>
+          <h2 class="p-3 mb-2 bg-dark text-light bi bi-strava">Project 3</h2>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">
+              <span class="progress-text">90%</span>
+            </div>
+          </div>
+          <h2 class="p-3 mb-2 bg-dark text-light bi bi-boxes">Project 4</h2>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">
+              <span class="progress-text">90%</span>
+            </div>
+          </div>
+
+          <hr class="hr hr-blurry" />
+          
+          <button id="create-new-project">Create New Project</button>
+
+          <br>
+          
+          <!-- We'll dynamically generate new project DIVs here -->
+          <div id="projects-container"></div>
+
+          <hr class="hr hr-blurry" />
+
+
+          
+        </div>
+
+      </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script>
+
+    // ONCLICK BUTTON FOR SIDEBAR
+    
+    $(document).ready(function() {
+      $('#show-btn').click(function() {
+        $('.sidebar').toggleClass('hide-sidebar');
+        $('.main-content').toggleClass('main-content-hide');
+        if ($('#sidebar-toggle-icon').hasClass('bi-list')) {
+          $('#sidebar-toggle-icon').removeClass('bi-list').addClass('bi-list-nested');
+        } else {
+          $('#sidebar-toggle-icon').removeClass('bi-list-nested').addClass('bi-list');
+        }
+      });
+    });
+
+     // FETCH NAMES DISPLAY AND PROGRESS BBARS
+
+    // Step 1: Load the projects.json file
+    fetch('projects_evolution.json')
+      .then(response => response.json())
+      .then(projects => {
+        // Step 2: Parse the JSON data into a JavaScript object
+
+        // Step 3: Replace the text inside the <h2> tags with the corresponding project names
+        // and update the progress bars
+        $('.project-dashboard h2').each((index, h2) => {
+          // Get the corresponding project object based on the index
+          const project = projects[index];
+
+          // Replace the text inside the <h2> tag with the project name
+          $(h2).text(project.name);
+
+          // Update the progress bar
+          const progressBar = $(h2).next('.progress').find('.progress-bar');
+          progressBar.css('width', `${project.progress}%`);
+          progressBar.attr('aria-valuenow', project.progress);
+          progressBar.text(`${project.progress}%`);
+        });
+      })
+      .catch(error => {
+        console.error('Error loading projects.json:', error);
+      });
+
+
+    // CREATION OF BUTTON FOR PROJECT CREATION
+
+    const projectsContainer = document.getElementById('projects-container');
+    const createNewProjectButton = document.getElementById('create-new-project');
+
+    createNewProjectButton.addEventListener('click', createNewProject);
+
+    function createNewProject() {
+  // Get the new project information from the user (e.g., project name, progress percentage)
+  const newProjectName = prompt('Enter new project name:');
+  const newProjectProgress = prompt('Enter new project progress (0-100):');
+
+  // Create a new project object
+  const newProject = {
+    name: newProjectName,
+    progress: parseInt(newProjectProgress)
+  };
+
+  // Load existing projects from local storage
+  let projectsJSON = localStorage.getItem('projects');
+  if (!projectsJSON) {
+    projectsJSON = { projects: [] };
+  } else {
+    projectsJSON = JSON.parse(projectsJSON);
+  }
+
+  // Add the new project to the JSON file
+  projectsJSON.projects.push(newProject);
+
+  // Save the updated JSON file to local storage
+  localStorage.setItem('projects', JSON.stringify(projectsJSON));
+
+  // Write the updated data to the projects_evolution.json file
+  const fs = require('fs');
+  fs.writeFileSync('projects_evolution.json', JSON.stringify(projectsJSON, null, 2));
+
+  // Dynamically generate a new DIV element for the new project
+  const newProjectDiv = document.createElement('div');
+  newProjectDiv.className = 'progress';
+  newProjectDiv.innerHTML = `
+    <div class="progress-bar" role="progressbar" style="width: ${newProjectProgress}%; aria-valuenow="${newProjectProgress}" aria-valuemin="0" aria-valuemax="100">
+      <span class="progress-text">${newProjectProgress}%</span>
+    </div>
+    <span>${newProjectName}</span>
+  `;
+  projectsContainer.appendChild(newProjectDiv);
+}
+
+    // Load projects from local storage and display them
+    function loadProjects() {
+      const projectsJSON = localStorage.getItem('projects');
+      if (projectsJSON) {
+        const projects = JSON.parse(projectsJSON).projects;
+          projects.forEach((project) => {
+            const projectDiv = document.createElement('div');
+            projectDiv.className = 'progress';
+            projectDiv.innerHTML = `
+              <div class="progress-bar" role="progressbar" style="width: ${project.progress}%; aria-valuenow="${project.progress}" aria-valuemin="0" aria-valuemax="100">
+                <span class="progress-text">${project.progress}%</span>
+              </div>
+              <span>${project.name}</span>
+            `;
+            projectsContainer.appendChild(projectDiv);
+          });
+        }
+      }
+
+      loadProjects();
+
+      localStorage.setItem('projects', JSON.stringify({ projects: [] }));
+
+  </script>
+
+</body>
+</html>

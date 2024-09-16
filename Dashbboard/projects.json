@@ -1,0 +1,19 @@
+{
+    "projects": [
+      {
+        "id": 1,
+        "project": "Concerto",
+        "department": "PPC Java"
+      },
+      {
+        "id": 2,
+        "project": "Compass",
+        "department": "BDFR"
+      },
+      {
+        "id": 3,
+        "project": "K-Tech Agile Community",
+        "department": "K-Way"
+      }
+    ]
+  }
