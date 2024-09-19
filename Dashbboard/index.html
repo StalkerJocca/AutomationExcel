@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
   <style>
     .sidebar {
-      background-color: #f0f0f0;
+      background-color: #333;
       padding-top: 2%;
       height: 100%;
       position: fixed;
@@ -70,6 +70,38 @@
       left: 0;
       z-index: 1;
     }
+    .fixed-bottom-row {
+      position: relative;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #333; /* Optional background color */
+      padding: 10px;
+      text-align: left;
+    }
+    .graphics-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .graphic {
+      width: 45%;
+      height: 200px; /* Set a fixed height for the canvas */
+      margin: 10px;
+      border-radius: 10px;
+    }
+
+    .signature {
+      font-size: 14px;
+      margin-left: 15px;
+      color: #ffffff; /* Optional text color */
+    }
     /* Add these styles to make the icon responsive and aligned to the left */
     #sidebar-toggle-icon {
       font-size: 24px;
@@ -103,21 +135,21 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-xs-2 col-md-2 col-lg-2 sidebar hide-sidebar">
-        <img src="./Images/logo-horizontal-blue.png" alt="Logo" width="auto" height="60px" class="logo">
+        <!-- <img src="./Images/logo-horizontal-blue.png" alt="Logo" width="auto" height="60px" class="logo"> -->
         <nav class="navbar navbar-expand-lg navbar-light">
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav flex-column">
               <li class="nav-item">
-                <a class="nav-link bi bi-music-note-beamed" href="#project1"> CONCERTO</a>
+                <a class="nav-link bi bi-music-note-beamed text-light" href="#project1"> CONCERTO</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link bi bi-compass" href="#project2"> COMPASS</a>
+                <a class="nav-link bi bi-compass text-light" href="#project2"> COMPASS</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link bi bi-strava" href="#project3"> K-TECH AGILE</a>
+                <a class="nav-link bi bi-strava text-light" href="#project3"> K-TECH AGILE</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link bi bi-boxes" href="#project4"> JENKINS</a>
+                <a class="nav-link bi bi-boxes text-light" href="#project4"> JENKINS</a>
               </li>
             </ul>
           </div>
@@ -159,7 +191,7 @@
 
           <hr class="hr hr-blurry" />
           
-          <button id="create-new-project">Create New Project</button>
+          <button class="btn btn-primary" id="create-new-project">Include new Project</button>
 
           <br>
           
@@ -168,10 +200,19 @@
 
           <hr class="hr hr-blurry" />
 
+          <div class="graphics-area">
+            <canvas id="graphic-1" class="graphic"></canvas>
+            <canvas id="graphic-2" class="graphic"></canvas>
+          </div>
+
 
           
         </div>
 
+      </div>
+      <div class="fixed-bottom-row">
+        <p class="signature">João Carlos Costa<sup>®</sup></p>
+        <p class="signature">Project Manager | Scrum Master </p>
       </div>
   </div>
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -292,6 +333,116 @@
 
       localStorage.setItem('projects', JSON.stringify({ projects: [] }));
 
+
+      // Load the JSON file
+    fetch('concerto_metrics.json')
+      .then(response => response.json())
+      .then(data => {
+        // Extract the data for the two graphics
+        const sprints = data.Concerto.map(item => item.sprint);
+        const expectedTickets = data.Concerto.map(item => parseInt(item.expected_tickets));
+        const totalTickets = data.Concerto.map(item => parseInt(item.total_tickets));
+        const percentagePlannedSprint = data.Concerto.map(item => parseFloat(item.percentage_planned_sprint.replace('%', '')));
+        const statusSprint = data.Concerto.map(item => parseFloat(item.status_sprint.replace('%', '')));
+
+        // Define colors for the bars
+        const plannedColor = '#333'; // BLACK
+        const statusColor = '#666'; // GRAY
+
+        // Generate graphic 1: Sprint vs Expected Tickets vs Total Tickets
+        const graphic1 = document.getElementById('graphic-1');
+        const ctx1 = graphic1.getContext('2d');
+        ctx1.font = '12px Arial';
+        ctx1.textAlign = 'center';
+        ctx1.textBaseline = 'middle';
+
+        // Draw x-axis
+        ctx1.beginPath();
+        ctx1.moveTo(0, graphic1.height - 20);
+        ctx1.lineTo(graphic1.width, graphic1.height - 20);
+        ctx1.stroke();
+
+        // Draw x-axis labels
+        for (let i = 0; i < sprints.length; i++) {
+          ctx1.fillText(sprints[i], i * 50, graphic1.height - 10);
+        }
+
+        // Draw bars
+        for (let i = 0; i < sprints.length; i++) {
+          ctx1.fillStyle = plannedColor; // Set fill color for expected tickets bars
+          ctx1.fillRect(i * 50, graphic1.height - 30, 20, -expectedTickets[i]); // Adjusted calculation
+          ctx1.font = '10px Arial';
+          ctx1.textAlign = 'center';
+          ctx1.textBaseline = 'middle';
+          ctx1.fillText(expectedTickets[i], i * 50 + 10, graphic1.height - 40 - expectedTickets[i]);
+
+          ctx1.fillStyle = statusColor; // Set fill color for total tickets bars
+          ctx1.fillRect(i * 50 + 25, graphic1.height - 30, 20, -totalTickets[i]); // Adjusted calculation
+          ctx1.font = '10px Arial';
+          ctx1.textAlign = 'center';
+          ctx1.textBaseline = 'middle';
+          ctx1.fillText(totalTickets[i], i * 50 + 35, graphic1.height - 40 - totalTickets[i]);
+        }
+
+        // Add title and labels
+        ctx1.font = '12px Arial';
+        ctx1.textAlign = 'left';
+        ctx1.textBaseline = 'top';
+        ctx1.fillText('Sprint Tickets', 8, 8);
+        ctx1.font = '12px Arial';
+        ctx1.textAlign = 'right';
+        ctx1.textBaseline = 'middle';
+        ctx1.fillText('Expected Scope', graphic1.width - 10, graphic1.height / 2);
+        ctx1.fillText('Total Scope', graphic1.width - 10, graphic1.height / 2 + 20);
+
+        // Generate graphic 2: Sprint vs Percentage Planned Sprint vs Status Sprint
+        const graphic2 = document.getElementById('graphic-2');
+        const ctx2 = graphic2.getContext('2d');
+        ctx2.font = '10px Arial';
+        ctx2.textAlign = 'right';
+        ctx2.textBaseline = 'middle';
+
+        // Draw x-axis
+        ctx2.beginPath();
+        ctx2.moveTo(0, graphic2.height - 20);
+        ctx2.lineTo(graphic2.width, graphic2.height - 20);
+        ctx2.stroke();
+
+        // Draw x-axis labels
+        for (let i = 0; i < sprints.length; i++) {
+          ctx2.fillText(sprints[i], i * 50, graphic2.height - 10);
+        }
+
+        // Draw bars
+        for (let i = 0; i < sprints.length; i++) {
+          ctx2.fillStyle = plannedColor; // Set fill color for planned bars
+          ctx2.fillRect(i * 50, graphic2.height - 30, 20, -percentagePlannedSprint[i] / 2);
+          //ctx2.fillStyle = 'white'; // Set fill color for text
+          ctx2.font = '10px Arial';
+          ctx2.textAlign = 'center';
+          ctx2.textBaseline = 'middle';
+          ctx2.fillText(percentagePlannedSprint[i] + '%', i * 50 + 10, graphic2.height - 40 - percentagePlannedSprint[i] / 2);
+
+          ctx2.fillStyle = statusColor; // Set fill color for status bars
+          ctx2.fillRect(i * 50 + 25, graphic2.height - 30, 20, -statusSprint[i] / 2);
+          //ctx2.fillStyle = 'white'; // Set fill color for text
+          ctx2.font = '10px Arial';
+          ctx2.textAlign = 'center';
+          ctx2.textBaseline = 'middle';
+          ctx2.fillText(statusSprint[i] + '%', i * 50 + 35, graphic2.height - 40 - statusSprint[i] / 2);
+        }
+
+        // Add title and labels
+        ctx2.font = '12px Arial';
+        ctx2.textAlign = 'left';
+        ctx2.textBaseline = 'top';
+        ctx2.fillText('Sprint Progress', 8, 8);
+        ctx2.font = '10px Arial';
+        ctx2.textAlign = 'right';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText('% Planned', graphic2.width - 10, graphic2.height / 2);
+        ctx2.fillText('% Achieved', graphic2.width - 10, graphic2.height / 2 + 20);
+      });
   </script>
 
 </body>
