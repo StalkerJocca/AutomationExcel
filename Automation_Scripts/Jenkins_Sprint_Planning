@@ -50,6 +50,44 @@ pipeline {
                 }
             }
         }
+        stage('Test GitHub Token') {
+            steps {
+                script {
+                    try {
+                        def githubUsername = 'StalkerJocca' // Your GitHub username
+                        def githubRepo = 'AutomationExcel' // Your GitHub repository name
+                        
+                        // Remove the existing test-repo directory if it exists
+                        sh '''
+                            echo "TESTING GITHUB CONNECTION "
+                            if [ -d "test-repo" ]; then
+                                echo "Removing existing test-repo directory."
+                                rm -rf test-repo
+                            fi
+                        '''
+                        
+                        // Attempt to clone the repository using the token
+                        sh """
+                            git clone https://${githubUsername}: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@github.com/${githubUsername}/${githubRepo}.git test-repo
+                        """
+                        echo "Token is working!"
+                        
+                        // List the contents of the cloned repository
+                        sh 'ls -la test-repo'
+                        
+                        // Check if the Exported_HTML_Files directory exists
+                        if (fileExists('test-repo/Exported_HTML_Files')) {
+                            sh 'cd test-repo/Exported_HTML_Files'
+                            echo "Changed to Exported_HTML_Files directory."
+                        } else {
+                            error "Directory 'test-repo/Exported_HTML_Files' does not exist."
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to authenticate with GitHub: ${e.message}"
+                    }
+                }
+            }
+        }
         stage('Convert Excel to CSV') {
             steps {
                 script {
@@ -435,6 +473,19 @@ pipeline {
                 }
             }
         }
+        stage('Check Directory') {
+            steps {
+                script {
+                    sh "mkdir -p AutomationExcel/${GITHUB_FOLDER}"
+                    if (fileExists("AutomationExcel/${GITHUB_FOLDER}")) {
+                        sh 'cd AutomationExcel/${GITHUB_FOLDER}'
+                        echo "Changed to ${GITHUB_FOLDER} directory."
+                    } else {
+                        error "Directory 'AutomationExcel/${GITHUB_FOLDER}' does not exist."
+                    }
+                }
+            }
+        }
         stage('Upload HTML to GitHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
@@ -473,18 +524,32 @@ pipeline {
                 }
             }
         }
+        stage('Check HTML File') {
+            steps {
+                script {
+                    echo "Current workspace: ${env.WORKSPACE}"
+                    echo "Expected HTML file path: ${HTML_FILE_PATH}"
+
+                    if (fileExists(HTML_FILE_PATH)) {
+                        echo "HTML file exists: ${HTML_FILE_PATH}"
+                    } else {
+                        error "HTML file not found: ${HTML_FILE_PATH}"
+                    }
+                }
+            }
+        }
         stage('Zip HTML File') {
             steps {
                 script {
-                    def htmlFilePath = "${env.WORKSPACE}/Sprint_Planning.html"
-                    def zipFilePath = "Sprint_Planning.zip"  // Use a relative path for the zip file
+                    def htmlFilePath = "${env.WORKSPACE}/${HTML_FILE_PATH}" // Use the full path
+                    def zipFilePath = "${params.PROJECT}_Planning.zip"  // Use a dynamic name based on the project
 
                     if (fileExists(htmlFilePath)) {
                         echo "HTML file exists: ${htmlFilePath}"
 
                         try {
                             // Create a zip file using jar command with properly quoted paths
-                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" Sprint_Planning.html"
+                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" \"${HTML_FILE_PATH}\"" // Ensure the correct file is zipped
                             echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
                         } catch (Exception e) {
                             error "Failed to create zip file: ${e.message}"
@@ -504,7 +569,7 @@ pipeline {
                     }
                 }
             }
-        }   
+        } 
         stage('Send HTML to Email') {
             steps {
                 script {

@@ -40,7 +40,7 @@ pipeline {
                 }
             }
         }
-        stage('Download Excel and Test GitHub') {
+        stage('Download Excel File') {
             steps {
                 script {
                     try {
@@ -51,16 +51,6 @@ pipeline {
                     } catch (e) {
                         echo "Error downloading Excel file: ${e.message}"
                         throw e
-                    }
-                    // Test GitHub token by attempting to clone the repository
-                    try {
-                        def githubUsername = 'StalkerJocca'
-                        def githubRepo = 'AutomationExcel'
-                        sh "rm -rf test-repo || true" // Remove existing test-repo directory if it exists
-                        sh "git clone https://${githubUsername}:${GITHUB_CREDENTIALS_ID}@github.com/${githubUsername}/${githubRepo}.git test-repo"
-                        echo "Token is working!"
-                    } catch (Exception e) {
-                        error "Failed to authenticate with GitHub: ${e.message}"
                     }
                 }
             }
