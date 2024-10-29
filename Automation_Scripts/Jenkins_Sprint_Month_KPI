@@ -22,9 +22,10 @@ pipeline {
         EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // EMAIL RECIPIENT
     }
     stages {
-        stage('Set Excel File Path') {
+        stage('Setup Project') {
             steps {
                 script {
+                    // Set Excel file path based on the selected project
                     if (params.PROJECT == 'CONCERTO') {
                         EXCEL_FILE_URL = 'https://raw.githubusercontent.com/StalkerJocca/AutomationExcel/main/Excel_Files/CONCERTO_Month.xlsx'
                         EXCEL_FILE_PATH = 'CONCERTO_Month.xlsx'
@@ -39,7 +40,7 @@ pipeline {
                 }
             }
         }
-        stage('Download Excel File') {
+        stage('Download Excel and Test GitHub') {
             steps {
                 script {
                     try {
@@ -51,43 +52,15 @@ pipeline {
                         echo "Error downloading Excel file: ${e.message}"
                         throw e
                     }
-                }
-            }
-        }
-        stage('Test GitHub Token') {
-            steps {
-                script {
+                    // Test GitHub token by attempting to clone the repository
                     try {
-                        def githubUsername = 'StalkerJocca' // Your GitHub username
-                        def githubRepo = 'AutomationExcel' // Your GitHub repository name
-                        
-                        // Remove the existing test-repo directory if it exists
-                        sh '''
-                            echo "TESTING GITHUB CONNECTION "
-                            if [ -d "test-repo" ]; then
-                                echo "Removing existing test-repo directory."
-                                rm -rf test-repo
-                            fi
-                        '''
-                        
-                        // Attempt to clone the repository using the token
-                        sh """
-                            git clone https://${githubUsername}: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@github.com/${githubUsername}/${githubRepo}.git test-repo
-                        """
+                        def githubUsername = 'StalkerJocca'
+                        def githubRepo = 'AutomationExcel'
+                        sh "rm -rf test-repo || true" // Remove existing test-repo directory if it exists
+                        sh "git clone https://${githubUsername}:${GITHUB_CREDENTIALS_ID}@github.com/${githubUsername}/${githubRepo}.git test-repo"
                         echo "Token is working!"
-                        
-                        // List the contents of the cloned repository
-                        sh 'ls -la test-repo'
-                        
-                        // Check if the Exported_HTML_Files directory exists
-                        if (fileExists('test-repo/Exported_HTML_Files')) {
-                            sh 'cd test-repo/Exported_HTML_Files'
-                            echo "Changed to Exported_HTML_Files directory."
-                        } else {
-                            error "Directory 'test-repo/Exported_HTML_Files' does not exist."
-                        }
                     } catch (Exception e) {
-                        echo "Failed to authenticate with GitHub: ${e.message}"
+                        error "Failed to authenticate with GitHub: ${e.message}"
                     }
                 }
             }
