@@ -91,7 +91,7 @@
     }
 
     .graphic {
-      width: 45%;
+      width: 100%;
       height: 200px; /* Set a fixed height for the canvas */
       margin: 10px;
       border-radius: 10px;
@@ -352,44 +352,45 @@
         // Generate graphic 1: Sprint vs Expected Tickets vs Total Tickets
         const graphic1 = document.getElementById('graphic-1');
         const ctx1 = graphic1.getContext('2d');
-        ctx1.font = '12px Arial';
+        ctx1.font = '10px Arial';
         ctx1.textAlign = 'center';
         ctx1.textBaseline = 'middle';
 
         // Draw x-axis
         ctx1.beginPath();
-        ctx1.moveTo(0, graphic1.height - 20);
+        ctx1.moveTo(20, graphic1.height - 20); // Move x-axis to the right
         ctx1.lineTo(graphic1.width, graphic1.height - 20);
         ctx1.stroke();
 
         // Draw x-axis labels
-        for (let i = 0; i < sprints.length; i++) {
-          ctx1.fillText(sprints[i], i * 50, graphic1.height - 10);
+        const numSprintsToShow = 2;
+        for (let i = 0; i < numSprintsToShow; i++) {
+          ctx1.fillText(sprints[i], (i * 50) + 120, graphic1.height - 10); // Move labels to the right
         }
 
         // Draw bars
-        for (let i = 0; i < sprints.length; i++) {
-          ctx1.fillStyle = plannedColor; // Set fill color for expected tickets bars
-          ctx1.fillRect(i * 50, graphic1.height - 30, 20, -expectedTickets[i]); // Adjusted calculation
+        for (let i = 0; i < numSprintsToShow; i++) {
+          ctx1.fillStyle = plannedColor;
+          ctx1.fillRect(i * 50 + 100, graphic1.height - 30, 20, -expectedTickets[i]); // Move bars to the right
           ctx1.font = '10px Arial';
           ctx1.textAlign = 'center';
           ctx1.textBaseline = 'middle';
-          ctx1.fillText(expectedTickets[i], i * 50 + 10, graphic1.height - 40 - expectedTickets[i]);
+          ctx1.fillText(expectedTickets[i], i * 50 + 110, graphic1.height - 40 - expectedTickets[i]);
 
-          ctx1.fillStyle = statusColor; // Set fill color for total tickets bars
-          ctx1.fillRect(i * 50 + 25, graphic1.height - 30, 20, -totalTickets[i]); // Adjusted calculation
+          ctx1.fillStyle = statusColor;
+          ctx1.fillRect(i * 50 + 125, graphic1.height - 30, 20, -totalTickets[i]); // Move bars to the right
           ctx1.font = '10px Arial';
           ctx1.textAlign = 'center';
           ctx1.textBaseline = 'middle';
-          ctx1.fillText(totalTickets[i], i * 50 + 35, graphic1.height - 40 - totalTickets[i]);
+          ctx1.fillText(totalTickets[i], i * 50 + 135, graphic1.height - 40 - totalTickets[i]);
         }
 
         // Add title and labels
         ctx1.font = '12px Arial';
         ctx1.textAlign = 'left';
         ctx1.textBaseline = 'top';
-        ctx1.fillText('Sprint Tickets', 8, 8);
-        ctx1.font = '12px Arial';
+        ctx1.fillText('Sprint Tickets', 20, 8); // Move title to the right
+        ctx1.font = '10px Arial';
         ctx1.textAlign = 'right';
         ctx1.textBaseline = 'middle';
         ctx1.fillText('Expected Scope', graphic1.width - 10, graphic1.height / 2);
@@ -404,44 +405,43 @@
 
         // Draw x-axis
         ctx2.beginPath();
-        ctx2.moveTo(0, graphic2.height - 20);
+        ctx2.moveTo(20, graphic2.height - 20); // Move x-axis to the right
         ctx2.lineTo(graphic2.width, graphic2.height - 20);
         ctx2.stroke();
 
         // Draw x-axis labels
-        for (let i = 0; i < sprints.length; i++) {
-          ctx2.fillText(sprints[i], i * 50, graphic2.height - 10);
+        const numSprintsToShow_R = 2;
+        for (let i = 0; i < numSprintsToShow_R; i++) {
+          ctx2.fillText(sprints[i], (i * 50) + 145, graphic2.height - 10); // Move labels to the right
         }
 
         // Draw bars
-        for (let i = 0; i < sprints.length; i++) {
-          ctx2.fillStyle = plannedColor; // Set fill color for planned bars
-          ctx2.fillRect(i * 50, graphic2.height - 30, 20, -percentagePlannedSprint[i] / 2);
-          //ctx2.fillStyle = 'white'; // Set fill color for text
-          ctx2.font = '10px Arial';
-          ctx2.textAlign = 'center';
-          ctx2.textBaseline = 'middle';
-          ctx2.fillText(percentagePlannedSprint[i] + '%', i * 50 + 10, graphic2.height - 40 - percentagePlannedSprint[i] / 2);
-
-          ctx2.fillStyle = statusColor; // Set fill color for status bars
-          ctx2.fillRect(i * 50 + 25, graphic2.height - 30, 20, -statusSprint[i] / 2);
-          //ctx2.fillStyle = 'white'; // Set fill color for text
-          ctx2.font = '10px Arial';
-          ctx2.textAlign = 'center';
-          ctx2.textBaseline = 'middle';
-          ctx2.fillText(statusSprint[i] + '%', i * 50 + 35, graphic2.height - 40 - statusSprint[i] / 2);
-        }
-
-        // Add title and labels
-        ctx2.font = '12px Arial';
-        ctx2.textAlign = 'left';
-        ctx2.textBaseline = 'top';
-        ctx2.fillText('Sprint Progress', 8, 8);
+      for (let i = 0; i < numSprintsToShow_R; i++) {
+        ctx2.fillStyle = plannedColor;
+        ctx2.fillRect(i * 50 + 100, graphic2.height - 30, 20, -percentagePlannedSprint[i] / 2); // Move bars to the right
         ctx2.font = '10px Arial';
-        ctx2.textAlign = 'right';
+        ctx2.textAlign = 'center';
         ctx2.textBaseline = 'middle';
-        ctx2.fillText('% Planned', graphic2.width - 10, graphic2.height / 2);
-        ctx2.fillText('% Achieved', graphic2.width - 10, graphic2.height / 2 + 20);
+        ctx2.fillText(percentagePlannedSprint[i] + '%', i * 50 + 110, graphic2.height - 40 - percentagePlannedSprint[i] / 2);
+
+        ctx2.fillStyle = statusColor;
+        ctx2.fillRect(i * 50 + 125, graphic2.height - 30, 20, -statusSprint[i] / 2); // Move bars to the right
+        ctx2.font = '10px Arial';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText(statusSprint[i] + '%', i * 50 + 135, graphic2.height - 40 - statusSprint[i] / 2);
+      }
+
+      // Add title and labels
+      ctx2.font = '12px Arial';
+      ctx2.textAlign = 'left';
+      ctx2.textBaseline = 'top';
+      ctx2.fillText('Sprint Progress', 20, 8); // Move title to the right
+      ctx2.font = '10px Arial';
+      ctx2.textAlign = 'right';
+      ctx2.textBaseline = 'middle';
+      ctx2.fillText('% Planned', graphic2.width - 10, graphic2.height / 2);
+      ctx2.fillText('% Achieved', graphic2.width - 10, graphic2.height / 2 + 20);
       });
   </script>
 
