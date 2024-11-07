@@ -464,7 +464,7 @@ pipeline {
                     script {
                         // Define incrementedHTMLFilePath
                         def timestamp = new Date().format("yyyyMMddHHmmss")  // Generate a timestamp
-                        def incrementedHTMLFilePath = "Sprint_Review_${timestamp}.html"
+                        def incrementedHTMLFilePath = "Sprint_Review_${params.PROJECT}_${timestamp}.html"
 
                         // Check if the AutomationExcel directory exists
                         if (fileExists("AutomationExcel")) {
@@ -525,15 +525,15 @@ pipeline {
         stage('Zip HTML File') {
             steps {
                 script {
-                    def htmlFilePath = "${env.WORKSPACE}/SPRINT_REVIEW_COMPASS.html"  // Use the correct file name
-                    def zipFilePath = "Sprint_Review.zip"  // Use a relative path for the zip file
+                    def htmlFilePath = "${env.WORKSPACE}/SPRINT_REVIEW_${params.PROJECT}.html"  // Use the correct file name
+                    def zipFilePath = "SPRINT_REVIEW_${params.PROJECT}.zip"  // Use a relative path for the zip file
 
                     if (fileExists(htmlFilePath)) {
                         echo "HTML file exists: ${htmlFilePath}"
 
                         try {
                             // Create a zip file using jar command with properly quoted paths
-                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" SPRINT_REVIEW_COMPASS.html"
+                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" SPRINT_REVIEW_${params.PROJECT}.html"
                             echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
                         } catch (Exception e) {
                             error "Failed to create zip file: ${e.message}"

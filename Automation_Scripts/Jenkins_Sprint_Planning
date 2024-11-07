@@ -47,14 +47,15 @@ pipeline {
                         echo "Error downloading Excel file: ${e.message}"
                         throw e
                     }
-                }
-            }
-        }
-        stage('Check Git Repository') {
-            steps {
-                script {
-                    dir('AutomationExcel') {
-                        sh 'git status' // This will fail if it's not a git repo
+                    // Test GitHub token by attempting to clone the repository
+                    try {
+                        def githubUsername = 'StalkerJocca'
+                        def githubRepo = 'AutomationExcel'
+                        sh "rm -rf test-repo || true" // Remove existing test-repo directory if it exists
+                        sh "git clone https://${githubUsername}:${GITHUB_CREDENTIALS_ID}@github.com/${githubUsername}/${githubRepo}.git test-repo"
+                        echo "Token is working!"
+                    } catch (Exception e) {
+                        error "Failed to authenticate with GitHub: ${e.message}"
                     }
                 }
             }
@@ -461,36 +462,48 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
                     script {
-                        def incrementedHTMLFilePath = sh(script: """
-                            cd AutomationExcel/${GITHUB_FOLDER}
-                            baseName=\$(basename "${HTML_FILE_PATH}" .html)
-                            extension=".html"
-                            index=1
-                            while [ -f "\${baseName}_\${index}\${extension}" ]; do
-                                index=\$((index + 1))
-                            done
-                            echo "\${baseName}_\${index}\${extension}"
-                        """, returnStdout: true).trim()
+                        // Define incrementedHTMLFilePath
+                        def timestamp = new Date().format("yyyyMMddHHmmss")  // Generate a timestamp
+                        def incrementedHTMLFilePath = "SPRINT_PLANNING_${params.PROJECT}_${timestamp}.html"
 
-                        withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
-                            sh """
-                                if [ -d "AutomationExcel" ]; then
+                        // Check if the AutomationExcel directory exists
+                        if (fileExists("AutomationExcel")) {
+                            // Check if it is a valid Git repository
+                            if (fileExists("AutomationExcel/.git")) {
+                                sh """
                                     cd AutomationExcel
+                                    echo "Directory exists and is a valid Git repository. Attempting to pull the latest changes."
                                     git pull origin ${GITHUB_BRANCH}
-                                else
-                                    git clone https://github.com/StalkerJocca/AutomationExcel.git
-                                    cd AutomationExcel
-                                fi
-                                mkdir -p ${GITHUB_FOLDER}
-                                cp ../${HTML_FILE_PATH} ${GITHUB_FOLDER}/${incrementedHTMLFilePath}
-                                cd ${GITHUB_FOLDER}
-                                git add ${incrementedHTMLFilePath}
-                                git config user.name "${GITHUB_USERNAME}"
-                                git config user.email "joaocosta1695@gmail.com"
-                                git commit -m 'Automated upload of HTML file'
-                                git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git ${GITHUB_BRANCH}
-                            """
+                                """
+                            } else {
+                                echo "Directory exists but is not a valid Git repository. Removing it and cloning again."
+                                sh "rm -rf AutomationExcel"  // Remove the invalid directory
+                                sh "git clone https://github.com/StalkerJocca/AutomationExcel.git"  // Clone again
+                            }
+                        } else {
+                            echo "Directory does not exist. Cloning the repository."
+                            sh "git clone https://github.com/StalkerJocca/AutomationExcel.git"
                         }
+
+                        // Create the Exported_HTML_Files directory
+                        sh "mkdir -p AutomationExcel/${GITHUB_FOLDER}"  // Create the folder if it doesn't exist
+                        
+                        // Define the absolute path for the HTML file
+                        def htmlFilePath = "${env.WORKSPACE}/${HTML_FILE_PATH}"
+                        echo "HTML file created at: ${htmlFilePath}"
+
+                        // Copy the HTML file to the GitHub folder
+                        sh "cp ${htmlFilePath} AutomationExcel/${GITHUB_FOLDER}/${incrementedHTMLFilePath}"  // Ensure incrementedHTMLFilePath is defined
+
+                        // Now add the file to Git
+                        sh """
+                            cd AutomationExcel/${GITHUB_FOLDER}
+                            git add ${incrementedHTMLFilePath}
+                            git config user.name '${GITHUB_USERNAME}'
+                            git config user.email 'joaocosta1695@gmail.com'
+                            git commit -m 'Automated upload of HTML file'
+                            git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/StalkerJocca/AutomationExcel.git ${GITHUB_BRANCH}
+                        """
                     }
                 }
             }
@@ -512,15 +525,15 @@ pipeline {
         stage('Zip HTML File') {
             steps {
                 script {
-                    def htmlFilePath = "${env.WORKSPACE}/${HTML_FILE_PATH}" // Use the full path
-                    def zipFilePath = "${params.PROJECT}_Planning.zip"  // Use a dynamic name based on the project
+                    def htmlFilePath = "${env.WORKSPACE}/SPRINT_PLANNING_${params.PROJECT}.html"  // Use the correct file name
+                    def zipFilePath = "SPRINT_PLANNING_${params.PROJECT}.zip"  // Use a relative path for the zip file
 
                     if (fileExists(htmlFilePath)) {
                         echo "HTML file exists: ${htmlFilePath}"
 
                         try {
                             // Create a zip file using jar command with properly quoted paths
-                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" \"${HTML_FILE_PATH}\"" // Ensure the correct file is zipped
+                            sh "jar -cf \"${zipFilePath}\" -C \"${env.WORKSPACE}\" SPRINT_PLANNING_${params.PROJECT}.html"
                             echo "Zip file created successfully: ${env.WORKSPACE}/${zipFilePath}"
                         } catch (Exception e) {
                             error "Failed to create zip file: ${e.message}"
@@ -548,7 +561,7 @@ pipeline {
                     def emailFrom = "StalkerJocca"
                     def emailBody = "Please find the Sprint Planning HTML report attached."
                     def emailRecipient = "${EMAIL_RECIPIENT}"
-                    def zipFilePath = "Sprint_Planning.zip"  // Use relative path for the zip file
+                    def zipFilePath = "SPRINT_PLANNING_${params.PROJECT}.zip"  // Use the correct zip file name based on the project
 
                     echo "Workspace directory: ${env.WORKSPACE}"
                     echo "Zip file path: ${env.WORKSPACE}/${zipFilePath}"
