@@ -14,8 +14,8 @@ pipeline {
         GITHUB_REPO_URL = 'https://github.com/StalkerJocca/AutomationExcel.git'
         GITHUB_BRANCH = 'main'
         GITHUB_FOLDER = 'Exported_HTML_Files'
-        GITHUB_CREDENTIALS_ID = 'github-credentials' // Change this to your actual credentials ID
-        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // Change this to the desired email recipient
+        GITHUB_CREDENTIALS_ID = 'github-credentials' // CREDENTIAL ID FOR GIT
+        EMAIL_RECIPIENT = 'joaocosta1695@gmail.com' // EMAIL RECIPIENT
     }
     stages {
         stage('Set Excel File Path') {
@@ -47,15 +47,14 @@ pipeline {
                         echo "Error downloading Excel file: ${e.message}"
                         throw e
                     }
-                    // Test GitHub token by attempting to clone the repository
-                    try {
-                        def githubUsername = 'StalkerJocca'
-                        def githubRepo = 'AutomationExcel'
-                        sh "rm -rf test-repo || true" // Remove existing test-repo directory if it exists
-                        sh "git clone https://${githubUsername}:${GITHUB_CREDENTIALS_ID}@github.com/${githubUsername}/${githubRepo}.git test-repo"
-                        echo "Token is working!"
-                    } catch (Exception e) {
-                        error "Failed to authenticate with GitHub: ${e.message}"
+                }
+            }
+        }
+        stage('Check Git Repository') {
+            steps {
+                script {
+                    dir('AutomationExcel') {
+                        sh 'git status' // This will fail if it's not a git repo
                     }
                 }
             }
