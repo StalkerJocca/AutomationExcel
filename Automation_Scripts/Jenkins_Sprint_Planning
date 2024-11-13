@@ -328,7 +328,7 @@ pipeline {
                                             } else if (column.trim().contains("DEVELOPMENT")) {
                                                 rowHtml += "<td style='background-color: #1E4893;'>${column}</td>" // Green background for DEVELOPMENT
                                             } else if (column.trim().contains("TO START DEVELOPMENT")) {
-                                                rowHtml += "<td style='background-color: #5A6578;'>${column}</td>" // Green background for TO START DEVELOPMENT
+                                                rowHtml += "<td style='background-color: #B7B7B7;'>${column}</td>" // Green background for TO START DEVELOPMENT
                                             } else if (column.trim().contains("UAT")) {
                                                 rowHtml += "<td style='background-color: #321361;'>${column}</td>" // Green background for UAT
                                             } else if (column.trim().contains("IT ADM")) {
