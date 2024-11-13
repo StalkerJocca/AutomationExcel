@@ -339,6 +339,8 @@ pipeline {
                                                 rowHtml += "<td style='background-color: #C8C6C6;'>${column}</td>" // Green background for NOT STARTED
                                             } else if (column.trim().contains("STARTED")) {
                                                 rowHtml += "<td style='background-color: #06A427;'>${column}</td>" // Green background for STARTED
+                                             else if (column.trim().contains("GO FOR PRODUCTION")) {
+                                                rowHtml += "<td style='background-color: #115ED3;'>${column}</td>" // Green background for GO FOR PRODUCTION
                                             } else if (column.trim().contains("CLOSED")) {
                                                 rowHtml += "<td style='background-color: #309E47;'>${column}</td>" // Green background for CLOSED
                                             } else if (column.trim().contains("ENDED")) {
